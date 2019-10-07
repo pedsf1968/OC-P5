@@ -4,6 +4,10 @@
 ################################################################################
 
 
+################################################################################
+#                                                                  GLOBAL DATA #
+################################################################################
+
 ################################################################ ETABLISSEMENT #
 LOCK TABLE etablissement WRITE;
 INSERT INTO etablissement VALUES
@@ -24,18 +28,6 @@ INSERT INTO etablissement VALUES
 UNLOCK TABLE;
 SELECT * FROM etablissement;
 
-###################################################################### ADRESSE #
-CALL create_adresse('1', 'Rue de Naple','Besançon','25000',@ID);
-CALL create_adresse('54', 'Rue de Rome','Besançon','25000',@ID);
-CALL create_adresse('42', 'Rue de Turin','Besançon','25000',@ID);
-CALL create_adresse('4', 'Grande Rue','Besançon','25000',@ID);
-CALL create_adresse('56', 'Rue de la République','Besançon','25000',@ID);
-CALL create_adresse('68', 'Rue des Granges','Besançon','25000',@ID);
-CALL create_adresse('12', 'Rue Violet','Besançon','25000',@ID);
-CALL create_adresse('17', 'Rue de l\'hôpital','Besançon','25000',@ID);
-SELECT * FROM adresse;
-
-
 ###################################################################### MAGASIN #
 CALL create_magasin('Pizza Napoli',	'0381501111','napoli@ocpizza.com',	'1',	'rue des Teinturiers',	'Lyon','69003', @ID);
 CALL create_magasin('Pizza Firenze','0381501654','firenze@ocpizza.com',	'45',	'rue des Bleuet',		'Dole','39000',@ID);
@@ -48,6 +40,11 @@ CALL create_fournisseur('Global Food',	'0145686811','client@globalfood.com',	'14
 CALL create_fournisseur('Italia Food',	'0181654654','commande@italiafood.com',	'15',	'rue de Paris',	'RUNGIS','94150', @ID);
 SELECT * FROM fournisseur,adresse WHERE adresse_id = adresse.id;
 
+
+################################################################################
+#                                                             UTILISATEUR DATA #
+################################################################################
+
 ###################################################################### EMPLOYE #
 CALL create_employe('Mlle','CASTAFIORE','Bianca','Bianca',SHA1('CASTAFIORE'),1,'Accueil',@ID);
 CALL create_employe('M','TINTIN','Milou','Milou',SHA1('TINTIN'),1,'Livreur',@ID);
@@ -56,9 +53,6 @@ CALL create_employe('M','ALCAZAR','Général','Général',SHA1('ALCAZAR'),1,'Piz
 CALL create_employe('M','MULLER','Docteur','Docteur',SHA1('MULLER'),1,'Comptable',@ID);
 CALL create_employe('M','LAMPION','Séraphin','Séraphin',SHA1('LAMPION'),1,'Manager',@ID);
 CALL create_employe('M','SPONSZ','Colonel','Colonel',SHA1('SPONSZ'),1,'Gestionnaire',@ID);
-
-SELECT utilisateur.id, utilisateur.prenom, utilisateur.nom, utilisateur.login, utilisateur.magasin_id,employe.role  FROM utilisateur
-JOIN employe ON employe.utilisateur_id = utilisateur.id;
 
 
 ####################################################################### CLIENT #
@@ -69,31 +63,10 @@ CALL create_client('M','THOMPSON','Alan','Alan',SHA1('THOMPSON'),2,'0381565422',
 CALL create_client('M','DUPON','ThierryAlan','Thierry',SHA1('DUPON'),1,'0381565422','thierry.dupon@belga.be','34', 'Rue de la Résistance','Besançon','25000',@ID);
 CALL create_client('M','DUPON','Daniel','Daniel',SHA1('DUPON'),2,'0381565422','daniel.dupon@belga.be','9', 'Rue Battant','Besançon','25000',@ID);
 
-SELECT utilisateur.id,utilisateur.civilite,utilisateur.prenom,utilisateur.nom,utilisateur.login,utilisateur.magasin_id,client.telephone,client.email  FROM utilisateur
-JOIN client ON client.utilisateur_id = utilisateur.id;
 
-
-CALL create_paiement_ticket_restaurant('654687',10,@ID);
-
-SELECT paiement.id, paiement.type, ticket_restaurant.numero, etablissement.nom FROM paiement 
-JOIN ticket_restaurant ON ticket_restaurant.paiement_id = paiement.id
-JOIN etablissement ON etablissement.id = ticket_restaurant.etablissement_id;
-
-CALL create_paiement_carte_bancaire('656465654687','19/10/11','12:14:33',@ID);
-
-SELECT paiement.id, paiement.type, carte_bancaire.reference, carte_bancaire.jour, carte_bancaire.heure FROM paiement 
-JOIN carte_bancaire ON carte_bancaire.paiement_id = paiement.id;
-
-CALL create_paiement_cheque(1,'kjh654689684654','19/11/11',@ID);
-
-SELECT paiement.id, paiement.type, cheque.banque, cheque.numero, cheque.jour FROM paiement 
-JOIN cheque ON cheque.paiement_id = paiement.id;
-
-CALL create_paiement_espece(@ID);
-
-SELECT paiement.id, paiement.type FROM paiement;
-
-
+################################################################################
+#                                                                 PRODUIT DATA #
+################################################################################
 
 ################################################################# LES PRODUITS #
 CALL create_produit('farine de blé T55 - 25Kg','ingrédient',1,'fkjh6546',25.00,'KG',33.40,NULL,'farine',NULL,@COMP);
@@ -173,6 +146,8 @@ CALL cherche_produit_id('Sauce tomate','vrac',@ID);
 CALL add_composant(@COMP,@ID,0.05,'L');
 CALL cherche_produit_id('Fromage rapé','vrac',@ID);
 CALL add_composant(@COMP,@ID,0.10,'KG');
+
+
 
 SELECT * FROM produit;
 SELECT * FROM composition;
