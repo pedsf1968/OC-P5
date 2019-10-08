@@ -306,7 +306,7 @@ DROP PROCEDURE IF EXISTS create_produit;
 DELIMITER |
 CREATE PROCEDURE create_produit(
    IN p_designation VARCHAR(100),
-   IN p_categorie ENUM ('vrac','ingrédient','pizza','boisson','dessert','emballage','sauce'),
+   IN p_categorie ENUM ('pack','vrac','ingrédient','pizza','boisson','dessert','emballage','sauce'),
    IN p_fournisseur_id INT UNSIGNED,
    IN p_reference VARCHAR(20),
    IN p_quantite DECIMAL(5,2),
@@ -338,7 +338,7 @@ DROP PROCEDURE IF EXISTS cherche_produit_id;
 DELIMITER |
 CREATE PROCEDURE cherche_produit_id(
    IN p_designation VARCHAR(100),
-   IN p_categorie ENUM ('vrac','ingrédient','pizza','boisson','dessert','emballage','sauce'),
+   IN p_categorie ENUM ('pack','vrac','ingrédient','pizza','boisson','dessert','emballage','sauce'),
    OUT p_id INT(10) UNSIGNED)
 BEGIN
    
@@ -397,19 +397,33 @@ DROP PROCEDURE IF EXISTS livre_magasin;
 DELIMITER |
 CREATE PROCEDURE livre_magasin()
 BEGIN
-   DECLARE v_magasin INT DEFAULT 1;
-   DECLARE v_produit INT DEFAULT 1;
+   DECLARE v_magasin_id INT DEFAULT 1;
+   DECLARE v_produit_id INT DEFAULT 1;
+   DECLARE fin TINYINT DEFAULT 0;
 
-   REPEAT
+   DECLARE curs_produit CURSOR 
+      FOR SELECT id FROM produit
+      WHERE categorie IN ("ingrédient","pack");
+
+   DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin = 1;
+
+   OPEN curs_produit;
+
+   loop_curseur: LOOP 
+      FETCH curs_produit INTO v_produit_id;
+
+      IF fin = 1 THEN
+         LEAVE loop_curseur;
+      END IF;
+
       REPEAT
-         CALL livraison(v_magasin,v_produit,1);
-         SET v_produit = v_produit +2;
-      UNTIL v_produit > 25
+         CALL livraison(v_magasin_id,v_produit_id,1);   
+         SET v_magasin_id = v_magasin_id + 1;
+      UNTIL v_magasin_id > 4
       END REPEAT;
-      SET v_produit = 1;
-      SET v_magasin = v_magasin + 1;
-   UNTIL v_magasin > 4
-   END REPEAT;
+   END LOOP;
+
+   CLOSE curs_produit;
 END |
 DELIMITER ;
 

@@ -230,7 +230,7 @@ DROP TABLE IF EXISTS produit;
 CREATE TABLE produit (
                 id INT UNSIGNED AUTO_INCREMENT NOT NULL,
                 designation VARCHAR(100) UNIQUE NOT NULL,
-                categorie ENUM ('vrac','ingrédient','pizza','boisson','dessert','emballage','sauce') NOT NULL,
+                categorie ENUM ('pack','vrac','ingrédient','pizza','boisson','dessert','emballage','sauce') NOT NULL,
                 fournisseur_id INT UNSIGNED,
                 reference VARCHAR(20),
                 quantite DECIMAL(5,2) DEFAULT (0.0),

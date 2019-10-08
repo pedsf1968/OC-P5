@@ -130,14 +130,28 @@ CALL create_produit('Fromage rapé - Vrac','vrac',2,'654654',1.0,'KG',NULL,NULL,
 CALL add_composant(@COMP,@ING,5.0,'KG');
 
 ################################################################# LES BOISSONS #
-CALL create_produit('Eau plate 50cl','boisson',1,'65465',1,'U',NULL,NULL,NULL,1.8,@COMP);
-CALL create_produit('Eau gazeuze 50cl','boisson',1,'654898',1,'U',NULL,NULL,NULL,1.8,@COMP);
-CALL create_produit('Cola 33cl','boisson',1,'654898',1,'U',NULL,NULL,NULL,1.8,@COMP);
-CALL create_produit('Jus d''orange 33cl','boisson',1,'888554',1,'U',NULL,NULL,NULL,2.1,@COMP);
-CALL create_produit('Jus de pommee 33cl','boisson',1,'644898',1,'U',NULL,NULL,NULL,2.1,@COMP);
+CALL create_produit('Eau plate - 50cl/24','pack',1,'65465',24,'U',NULL,NULL,NULL,NULL,@COMP);
+CALL create_produit('Eau plate - 50cl','boisson',1,'65465',1,'U',NULL,1.8,NULL,NULL,@ING);
+CALL add_composant(@COMP,@ING,24,'U');
+
+CALL create_produit('Eau gazeuze - 50cl/24','pack',1,'654898',1,'U',NULL,NULL,NULL,NULL,@COMP);
+CALL create_produit('Eau gazeuze - 50cl','boisson',1,'654898',1,'U',NULL,1.8,NULL,NULL,@ING);
+CALL add_composant(@COMP,@ING,24,'U');
+
+CALL create_produit('Cola - 33cl/24','pack',1,'654898',1,'U',NULL,NULL,NULL,NULL,@COMP);
+CALL create_produit('Cola - 33cl','boisson',1,'654898',1,'U',NULL,1.8,NULL,NULL,@ING);
+CALL add_composant(@COMP,@ING,24,'U');
+
+CALL create_produit('Jus d''orange - 33cl/24','pack',1,'888554',1,'U',NULL,NULL,NULL,NULL,@COMP);
+CALL create_produit('Jus d''orange - 33cl','boisson',1,'888554',1,'U',NULL,1.8,NULL,NULL,@ING);
+CALL add_composant(@COMP,@ING,24,'U');
+
+CALL create_produit('Jus de pomme - 33cl/24','pack',1,'644898',1,'U',NULL,NULL,NULL,NULL,@COMP);
+CALL create_produit('Jus de pomme - 33cl','boisson',1,'644898',1,'U',NULL,2.1,NULL,NULL,@ING);
+CALL add_composant(@COMP,@ING,24,'U');
 
 ################################################################### LES PIZZAS #
-CALL create_produit('Pizza margarite','pizza',1,'Pmargarita',1,'U',NULL,NULL,NULL,15.2,@COMP);
+CALL create_produit('Pizza margarite','pizza',1,'Pmargarita',1,'U',NULL,15.3,NULL,NULL,@COMP);
 CALL cherche_produit_id('farine','vrac',@ID);
 CALL add_composant(@COMP,@ID,0.10,'KG');
 CALL cherche_produit_id('jambon','vrac',@ID);
@@ -147,11 +161,11 @@ CALL add_composant(@COMP,@ID,0.05,'L');
 CALL cherche_produit_id('Fromage rapé','vrac',@ID);
 CALL add_composant(@COMP,@ID,0.10,'KG');
 
-
-
 SELECT * FROM produit;
 SELECT * FROM composition;
 SELECT * FROM preparation;
 SELECT * FROM composant;
 
+CALL livre_magasin();
 
+SELECT * FROM stock;

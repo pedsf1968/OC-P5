@@ -321,17 +321,41 @@ DELIMITER ;
 #                                                       REQUETE SELECT PRODUIT #
 ################################################################################
 
+############################################################### GET PRODUIT ID #
+DROP FUNCTION IF EXISTS get_produit_id;
+DELIMITER |
+CREATE FUNCTION get_produit_id(
+	p_designation VARCHAR(100))
+RETURNS INT(10) UNSIGNED
+DETERMINISTIC
+BEGIN
+	DECLARE v_id INT(10) UNSIGNED;
+
+	SELECT id INTO v_id
+	FROM produit
+	WHERE designation LIKE CONCAT('%',p_designation,'%') 
+	ORDER BY id ASC LIMIT 1;
+
+	RETURN (v_id);
+END |
+DELIMITER ;
+
 ############################################## LISTE INGREDIENT PRODUIT PAR ID #
 DROP PROCEDURE IF EXISTS liste_ingredient_produit_par_id;
 DELIMITER |
 CREATE PROCEDURE liste_ingredient_produit_par_id(
 	IN p_id INT(10) UNSIGNED)
 BEGIN
-	SELECT produit.id,produit.designation,composant.quantite,composant.unite FROM produit
-	INNER JOIN composant ON ingredient_id = produit.id
+	SELECT produit.id AS ID,
+ 		produit.designation AS Désignation,
+		composant.quantite AS Quantité,
+		composant.unite AS Unité FROM composant
+	INNER JOIN produit
+	ON composant.ingredient_id = produit.id
 	WHERE composant.produit_id = p_id;
 END|
 DELIMITER ;
+
 
 ##################################### LISTE INGREDIENT PRODUIT PAR DESIGNATION #
 DROP PROCEDURE IF EXISTS liste_ingredient_produit_par_designation;
@@ -339,12 +363,29 @@ DELIMITER |
 CREATE PROCEDURE liste_ingredient_produit_par_designation(
 	IN p_designation VARCHAR(100))
 BEGIN
-	SELECT produit.id,produit.designation,composant.quantite,composant.unite FROM produit
-	INNER JOIN composant ON ingredient_id = produit.id
-	WHERE produit.designation LIKE CONCAT('%',p_designation,'%');
+	DECLARE v_id INT(10) UNSIGNED;
+
+	SET v_id = get_produit_id(p_designation);
+
+	SELECT produit.id AS ID,
+ 		produit.designation AS Désignation,
+		composant.quantite AS Quantité,
+		composant.unite AS Unité FROM composant
+	INNER JOIN produit
+	ON composant.ingredient_id = produit.id
+	WHERE composant.produit_id = v_id;
 END|
 DELIMITER ;
 
+####################################################### LISTE PRODUIT VENDABLE #
+DROP PROCEDURE IF EXISTS liste_produit_vendable;
+DELIMITER |
+CREATE PROCEDURE liste_produit_vendable(
+	IN p_magasin_id INT(10) UNSIGNED)
+BEGIN
+
+END |
+DELIMITER ;
 
 
 SELECT utilisateur.id, utilisateur.prenom, utilisateur.nom, utilisateur.login, utilisateur.magasin_id,employe.role  FROM utilisateur
