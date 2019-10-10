@@ -383,17 +383,61 @@ DELIMITER |
 CREATE PROCEDURE liste_produit_vendable(
 	IN p_magasin_id INT(10) UNSIGNED)
 BEGIN
+	SELECT produit.id, produit.designation, produit.prix_vente_ht FROM produit 
+	LEFT  JOIN stock ON produit.id = stock.produit_id
+	WHERE (magasin_id = p_magasin_id OR magasin_id IS NULL) 
+	AND (categorie NOT IN ('pack','vrac','ingrédient'))
+	AND (stock.quantite > 0 OR stock.quantite IS NULL);
 
 END |
 DELIMITER ;
 
+####################################################### PRODUIT EST DISPONIBLE #
+DROP FUNCTION IF EXISTS produit_est_disponible;
+DELIMITER |
+CREATE FUNCTION produit_est_disponible(
+	p_magasin_id INT(10) UNSIGNED,
+	p_produit_id INT(10) UNSIGNED,
+	p_quantite DECIMAL(2))
+RETURNS INT
+DETERMINISTIC
+BEGIN
+	DECLARE v_disponible INT DEFAULT FALSE;
 
-SELECT utilisateur.id, utilisateur.prenom, utilisateur.nom, utilisateur.login, utilisateur.magasin_id,employe.role  FROM utilisateur
-JOIN employe ON employe.utilisateur_id = utilisateur.id;
+	SELECT quantite>=p_quantite INTO v_disponible FROM stock
+	WHERE magasin_id = p_magasin_id AND produit_id = p_produit_id;
 
-SELECT utilisateur.id,utilisateur.civilite,utilisateur.prenom,utilisateur.nom,utilisateur.login,utilisateur.magasin_id,client.telephone,client.email  FROM utilisateur
-JOIN client ON client.utilisateur_id = utilisateur.id;
+	IF v_disponible = 1 THEN
+		RETURN (v_disponible);
+	ELSE
+		SELECT SUM(stock.quantite>= composant.quantite*p_quantite)=COUNT(*) INTO v_disponible FROM composant
+		JOIN stock ON composant.ingredient_id = stock.produit_id
+		WHERE magasin_id = p_magasin_id AND composant.produit_id = p_produit_id; 
+	END IF;
 
+	RETURN (v_disponible);
+END |
+DELIMITER ;
+
+
+
+PREPARE liste_employe FROM
+'SELECT utilisateur.id, utilisateur.prenom, utilisateur.nom, utilisateur.login, utilisateur.magasin_id,employe.role  FROM utilisateur
+JOIN employe ON employe.utilisateur_id = utilisateur.id';
+
+PREPARE liste_employe_dans_magasin FROM
+'SELECT utilisateur.id, utilisateur.prenom, utilisateur.nom, utilisateur.login, employe.role  FROM utilisateur
+JOIN employe ON employe.utilisateur_id = utilisateur.id
+WHERE utilisateur.magasin_id = ?';
+
+PREPARE liste_client FROM
+'SELECT utilisateur.id,utilisateur.civilite,utilisateur.prenom,utilisateur.nom,utilisateur.login,utilisateur.magasin_id,client.telephone,client.email  FROM utilisateur
+JOIN client ON client.utilisateur_id = utilisateur.id';
+
+PREPARE liste_client_dans_magasin FROM
+'SELECT utilisateur.id,utilisateur.civilite,utilisateur.prenom,utilisateur.nom,utilisateur.login,client.telephone,client.email  FROM utilisateur
+JOIN client ON client.utilisateur_id = utilisateur.id
+WHERE utilisateur.magasin_id = ?';
 
 SELECT paiement.id, paiement.type, ticket_restaurant.numero, etablissement.nom FROM paiement 
 JOIN ticket_restaurant ON ticket_restaurant.paiement_id = paiement.id

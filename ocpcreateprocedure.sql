@@ -397,22 +397,20 @@ DROP PROCEDURE IF EXISTS livre_magasin;
 DELIMITER |
 CREATE PROCEDURE livre_magasin()
 BEGIN
-   DECLARE v_magasin_id INT DEFAULT 1;
-   DECLARE v_produit_id INT DEFAULT 1;
-   DECLARE fin TINYINT DEFAULT 0;
+   DECLARE v_magasin_id INT(10) DEFAULT 1;
+   DECLARE v_produit_id INT(10) DEFAULT 1;
+   DECLARE done INT DEFAULT FALSE;
 
-   DECLARE curs_produit CURSOR 
-      FOR SELECT id FROM produit
-      WHERE categorie IN ("ingrédient","pack");
+   DECLARE curs_produit CURSOR FOR SELECT id FROM produit WHERE categorie IN ("ingrédient","pack");
 
-   DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin = 1;
+   DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
    OPEN curs_produit;
 
    loop_curseur: LOOP 
       FETCH curs_produit INTO v_produit_id;
 
-      IF fin = 1 THEN
+      IF done THEN
          LEAVE loop_curseur;
       END IF;
 
@@ -421,7 +419,8 @@ BEGIN
          SET v_magasin_id = v_magasin_id + 1;
       UNTIL v_magasin_id > 4
       END REPEAT;
-   END LOOP;
+      SET v_magasin_id = 1;
+   END LOOP loop_curseur;
 
    CLOSE curs_produit;
 END |
@@ -466,18 +465,23 @@ BEGIN
    SELECT quantite INTO v_quantite_old FROM ligne_de_panier 
    WHERE utilisateur_id = p_utilisateur_id AND produit_id = p_produit_id;
 
+   IF v_quantite_old IS NULL THEN
+      SET v_quantite_old = 0;
+   END IF;
+
    SELECT prix_vente_ht INTO v_prix_unitaire_ht FROM produit WHERE id = p_produit_id;
+
+   CALL update_montant_panier(p_utilisateur_id,v_prix_unitaire_ht*p_quantite);
 
    INSERT INTO ligne_de_panier (utilisateur_id,produit_id,quantite,prix_unitaire_ht,taux_tva)
    VALUES (p_utilisateur_id,p_produit_id,p_quantite+v_quantite_old,v_prix_unitaire_ht,p_taux_tva)
    ON DUPLICATE KEY UPDATE quantite = p_quantite + v_quantite_old, prix_unitaire_ht = v_prix_unitaire_ht, taux_tva = p_taux_tva;
 
-   CALL update_montant_panier(p_utilisateur_id,v_prix_unitaire_ht*p_quantite);
 END |
 DELIMITER ;
 
 
-################################################################# AJOUT PANIER #
+################################################################ ENLEVE PANIER #
 DROP PROCEDURE IF EXISTS enleve_panier;
 DELIMITER |
 CREATE PROCEDURE enleve_panier(
@@ -504,6 +508,66 @@ BEGIN
 END |
 DELIMITER ;
 
+
+################################################################ DIMINUE STOCK #
+DROP PROCEDURE IF EXISTS diminue_stock;
+DELIMITER |
+CREATE PROCEDURE diminue_stock(
+   IN p_magasin_id INT(10),
+   IN p_produit_id INT(10),
+   IN p_quantite DECIMAL(5,2))
+BEGIN
+   DECLARE v_compose INT DEFAULT FALSE;
+   DECLARE done INT DEFAULT FALSE;
+   DECLARE v_quantite_old DECIMAL(5,2);
+   DECLARE v_produit_id INT(10) UNSIGNED;
+   DECLARE v_quantite DECIMAL(5,2);
+   
+   -- on vérifie si le produit est composé
+   SELECT (COUNT(*)>0) INTO v_compose FROM composant WHERE produit_id = p_produit_id;
+
+   IF v_compose THEN
+      -- produit composé
+      -- on récupère les ingrédients dans un curseur
+      DECLARE curs_produit_panier CURSOR FOR 
+         SELECT ingredient_id, quantite FROM composant WHERE produit_id = p_produit_id;
+
+      DECLARE CONTINUE HANDLER FOR 
+         NOT FOUND SET done = TRUE;
+
+      OPEN curs_produit_panier;
+
+      loop_curseur: LOOP 
+         -- On récupère les valeurs du curseur dans deux variables
+         FETCH curs_produit_panier INTO v_produit_id,v_quantite;
+
+         IF done THEN
+            LEAVE loop_curseur;
+         END IF;
+
+         SELECT quantite INTO v_quantite_old FROM stock WHERE magasin_id = p_magasin_id AND produit_id = v_produit_id;
+         IF v_quantite_old <= v_quantite THEN 
+            UPDATE stock SET quantite = 0 WHERE magasin_id = p_magasin_id AND produit_id = v_produit_id;
+         ELSE
+            UPDATE stock SET quantite = v_quantite_old - v_quantite WHERE magasin_id = p_magasin_id AND produit_id = v_produit_id;
+         END IF;
+      END LOOP loop_curseur;
+
+      CLOSE curs_produit_panier;
+   ELSE
+      -- produit simple
+      SELECT quantite INTO v_quantite_old FROM stock WHERE magasin_id = p_magasin_id AND produit_id = p_produit_id;
+      IF v_quantite_old <= p_quantite THEN 
+         UPDATE stock SET quantite = 0 WHERE magasin_id = p_magasin_id AND produit_id = v_produit_id;
+      ELSE
+         UPDATE stock SET quantite = v_quantite_old - p_quantite WHERE magasin_id = p_magasin_id AND produit_id = v_produit_id;
+      END IF;
+   END IF;
+   
+END |
+DELIMITER ;
+
+
 ############################################################## VALIDE COMMANDE #
 DROP PROCEDURE IF EXISTS valide_commande;
 DELIMITER |
@@ -515,12 +579,45 @@ BEGIN
    DECLARE v_jour DATE DEFAULT CURRENT_DATE();
    DECLARE v_heure TIME DEFAULT CURRENT_TIME();
    DECLARE v_montant DECIMAL(5,2) DEFAULT (0.0);
+   DECLARE v_magasin_id INT(10) UNSIGNED;
+   DECLARE v_produit_id INT(10) UNSIGNED;
+   DECLARE v_quantite DECIMAL(5,2) DEFAULT (0.0);
+   DECLARE done INT DEFAULT FALSE;
 
+   -- vérification de la présence de tous les produits en stock
+   SELECT magasin_id INTO v_magasin_id FROM utilisateur WHERE id = p_utilisateur_id;
+ 
+   DECLARE curs_produit CURSOR FOR 
+      SELECT produit_id,quantite FROM ligne_de_panier WHERE utilisateur_id = p_utilisateur_id;
+
+   DECLARE CONTINUE HANDLER FOR 
+      NOT FOUND SET done = TRUE;
+
+   OPEN curs_produit;
+   loop_curseur: LOOP 
+      FETCH curs_produit INTO v_produit_id,v_quantite;
+
+      IF done THEN
+         LEAVE loop_curseur;
+      END IF;
+
+      IF produit_est_disponible(v_magasin_id,v_produit_id,v_quantite) THEN
+         -- on enlève le produit correspondant et on provoque une erreur
+         CALL enleve_panier(p_utilisateur_id,v_produit_id,v_quantite);
+         INSERT INTO erreur (message) VALUES ('ERREUR : un produit n''est plus disponible!');
+      END IF;
+   END LOOP loop_curseur;
+
+   CLOSE curs_produit;
+
+   -- on récupère le montant du panier
    SELECT montant INTO v_montant from panier WHERE utilisateur_id = p_utilisateur_id;
 
+   -- on créée une nouvelle commande
    INSERT INTO commande (utilisateur_id, adresse_id, status, jour, heure, montant)
    VALUES (p_utilisateur_id, p_adresse_id, 'En attente', v_jour, v_heure, v_montant);
 
+   -- on récupère l'identifiant de la commande
    SELECT DISTINCT id INTO p_commande_id FROM commande
    WHERE utilisateur_id = p_utilisateur_id 
    AND adresse_id = p_adresse_id 
@@ -528,9 +625,32 @@ BEGIN
    AND jour = v_jour
    AND heure = v_heure;
 
+   -- diminution des stocks 
+   SET done = FALSE;
+
+   DECLARE curs_produit CURSOR FOR SELECT produit_id,quantite FROM ligne_de_panier WHERE utilisateur_id = p_utilisateur_id;
+
+   DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+   OPEN curs_produit;
+   loop_curseur: LOOP 
+      FETCH curs_produit INTO v_produit_id,v_quantite;
+
+      IF done THEN
+         LEAVE loop_curseur;
+      END IF;
+
+      CALL diminue_stock(v_magasin_id,v_produit_id,v_produit_id);
+
+   END LOOP loop_curseur;
+
+   CLOSE curs_produit;
+
+   -- on copie les lignes de panier dans les lignes de commande
    INSERT INTO ligne_de_commande (commande_id,produit_id,quantite,prix_unitaire_ht, taux_tva)
    SELECT p_commande_id,produit_id,quantite,prix_unitaire_ht, taux_tva FROM ligne_de_panier WHERE utilisateur_id = p_utilisateur_id;
 
+   -- on vide le panier
    DELETE FROM ligne_de_panier WHERE utilisateur_id = p_utilisateur_id;
    DELETE FROM panier WHERE utilisateur_id = p_utilisateur_id;
 

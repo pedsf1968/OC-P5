@@ -24,6 +24,7 @@ INSERT INTO erreur (message) VALUES ('ERREUR : l''adresse doit être unique!');
 INSERT INTO erreur (message) VALUES ('ERREUR : le login doit être unique!');
 INSERT INTO erreur (message) VALUES ('ERREUR : le nom du magasin doit être unique!');
 INSERT INTO erreur (message) VALUES ('ERREUR : le nom du fournisseur doit être unique!');
+INSERT INTO erreur (message) VALUES ('ERREUR : un produit n''est plus disponible!');
 
 SELECT * FROM erreur;
 
