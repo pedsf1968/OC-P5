@@ -394,7 +394,7 @@ CREATE TABLE commande (
                 heure TIME DEFAULT (CURRENT_TIME()) NOT NULL,
                 preparation_delai TIME,
                 preparation_duree TIME,
-                livraison_delais TIME,
+                livraison_delai TIME,
                 livraison_duree TIME,
                 paiement_OK BOOLEAN DEFAULT false NOT NULL,
                 montant DECIMAL(5,2) DEFAULT (0.0) NOT NULL,

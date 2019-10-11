@@ -6,17 +6,20 @@
 DROP PROCEDURE IF EXISTS create_adresse;
 DELIMITER |
 CREATE PROCEDURE create_adresse(
-   IN p_numero VARCHAR(5), 
-	IN p_voie VARCHAR(50), 
-	IN p_ville VARCHAR(20),
-	IN p_code VARCHAR(5),
-	OUT p_id INT(10) UNSIGNED)
+   IN p_numero VARCHAR(5),       -- numéro de la rue
+	IN p_voie VARCHAR(50),        -- nom de la voie
+	IN p_ville VARCHAR(20),       -- nom de la ville
+	IN p_code VARCHAR(5),         -- code postal
+	OUT p_id INT(10) UNSIGNED)    -- retourne identifiant de l'adresse correspondante
 BEGIN
 	SET p_id = 0;
 
+   -- on cherche si l'adresse existe déjà
 	SELECT DISTINCT id INTO p_id FROM adresse
-	WHERE numero = p_numero AND voie = p_voie AND ville = p_ville AND code = p_code;
+	WHERE numero = p_numero AND voie = p_voie AND ville = p_ville AND code = p_code
+   ORDER BY id DESC LIMIT 1;
 
+   -- si l'adresse n'existe pas on la créé sinon on renvoie l'identifiant trouvé
 	IF p_id =  0 THEN 
 		INSERT INTO adresse(numero, voie, ville, code) 
 		VALUES (p_numero,p_voie, p_ville, p_code);
@@ -24,7 +27,8 @@ BEGIN
       #on recherche ID de l'adresse créée
 		SELECT DISTINCT id INTO p_id 
 		FROM adresse 
-		WHERE numero=p_numero AND voie=p_voie AND ville = p_ville AND code = p_code;
+		WHERE numero=p_numero AND voie=p_voie AND ville = p_ville AND code = p_code
+      ORDER BY id DESC LIMIT 1;
 	END IF;
 END |
 DELIMITER ;
@@ -33,23 +37,27 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS create_magasin;
 DELIMITER |
 CREATE PROCEDURE create_magasin( 
-   IN p_nom VARCHAR(50),
-	IN p_telephone VARCHAR(10),
-	IN p_email VARCHAR(255),
-	IN p_numero VARCHAR(5), 
-	IN p_voie VARCHAR(50), 
-	IN p_ville VARCHAR(20),
-   IN p_code VARCHAR(5),
-	OUT p_id INT(10) UNSIGNED)
+   IN p_nom VARCHAR(50),        -- nom du magasin
+	IN p_telephone VARCHAR(10),  -- téléphone du magasin
+	IN p_email VARCHAR(255),     -- email du magasin
+	IN p_numero VARCHAR(5),      -- numéro de la rue
+	IN p_voie VARCHAR(50),       -- nom de la voie
+	IN p_ville VARCHAR(20),      -- nom de la ville
+   IN p_code VARCHAR(5),        -- code postal
+	OUT p_id INT(10) UNSIGNED)   -- retourne l'identifiant du magasin correspondant
 BEGIN
    DECLARE v_adresse_id INT(10) UNSIGNED;
    
    SET p_id = 0;
    SET v_adresse_id = 0;
+
+   -- on effectue la création de l'adresse pour avoir l'identifiant
 	CALL create_adresse(p_numero, p_voie, p_ville, p_code, v_adresse_id);
 
-   SELECT id INTO p_id FROM magasin
-   WHERE nom = p_nom AND telephone = p_telephone AND email = p_email AND adresse_id = v_adresse_id;
+   -- on cherche si un magasin existe déjà
+   SELECT DISTINCT id INTO p_id FROM magasin
+   WHERE nom = p_nom AND telephone = p_telephone AND email = p_email AND adresse_id = v_adresse_id
+      ORDER BY id DESC LIMIT 1;
 
    IF p_id > 0 THEN
       INSERT INTO erreur (message) VALUES ('ERREUR : le nom du magasin doit être unique!');
@@ -69,31 +77,36 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS create_fournisseur;
 DELIMITER |
 CREATE PROCEDURE create_fournisseur( 
-   IN p_nom VARCHAR(50),
-	IN p_telephone VARCHAR(10),
-	IN p_email VARCHAR(255),
-	IN p_numero VARCHAR(5), 
-	IN p_voie VARCHAR(50), 
-	IN p_ville VARCHAR(20),
-	IN p_code VARCHAR(5),
-	OUT p_id INT(10) UNSIGNED)
+   IN p_nom VARCHAR(50),         -- nom du fournisseur
+	IN p_telephone VARCHAR(10),   -- téléphone du fournisseur
+	IN p_email VARCHAR(255),      -- email du fournisseur
+	IN p_numero VARCHAR(5),       -- numéro du fournisseur
+	IN p_voie VARCHAR(50),        -- nom de la voie 
+	IN p_ville VARCHAR(20),       -- nom de la ville 
+	IN p_code VARCHAR(5),         -- code postal
+	OUT p_id INT(10) UNSIGNED)    -- retourne l'identifiant du fournisseur créé
 BEGIN
 	DECLARE v_adresse_id INT(10) UNSIGNED;
    
    SET p_id = 0;
    SET v_adresse_id = 0;
+
+   -- création de l'addresse
    CALL create_adresse(p_numero, p_voie, p_ville, p_code, v_adresse_id);
 
+   -- recherche si le fournisseur existe
    SELECT id INTO p_id FROM fournisseur
-   WHERE nom = p_nom AND telephone = p_telephone AND email = p_email AND adresse_id = v_adresse_id;
+   WHERE nom = p_nom AND telephone = p_telephone AND email = p_email AND adresse_id = v_adresse_id
+   ORDER BY id DESC LIMIT 1;
 
+   -- si il existe il y a une erreur de duplication sinon on créé le fournisseur
    IF p_id > 0 THEN
       INSERT INTO erreur (message) VALUES ('ERREUR : le nom du fournisseur doit être unique!');
    ELSE
    	INSERT INTO fournisseur (nom, telephone,email,adresse_id) 
    	VALUES (p_nom, p_telephone,p_email,v_adresse_id);
    	
-      #on recherche ID du fournisseur créée
+      -- on recherche ID du fournisseur créée
    	SELECT id INTO p_id 
    	FROM fournisseur 
    	WHERE nom=p_nom;
@@ -296,7 +309,6 @@ END |
 DELIMITER ;
 
 
-
 ################################################################################
 #                                                                      PRODUIT #
 ################################################################################
@@ -451,9 +463,9 @@ DELIMITER ;
 
 
 ################################################################# AJOUT PANIER #
-DROP PROCEDURE IF EXISTS ajout_panier;
+DROP PROCEDURE IF EXISTS ajoute_panier;
 DELIMITER |
-CREATE PROCEDURE ajout_panier(
+CREATE PROCEDURE ajoute_panier(
    IN p_utilisateur_id INT(10),
    IN p_produit_id INT(10),
    IN p_quantite DECIMAL(2,0),
@@ -522,19 +534,17 @@ BEGIN
    DECLARE v_quantite_old DECIMAL(5,2);
    DECLARE v_produit_id INT(10) UNSIGNED;
    DECLARE v_quantite DECIMAL(5,2);
+   DECLARE curs_produit_panier CURSOR FOR 
+         SELECT ingredient_id, quantite FROM composant WHERE produit_id = p_produit_id;
+
+   DECLARE CONTINUE HANDLER FOR 
+         NOT FOUND SET done = TRUE;
    
    -- on vérifie si le produit est composé
    SELECT (COUNT(*)>0) INTO v_compose FROM composant WHERE produit_id = p_produit_id;
 
    IF v_compose THEN
-      -- produit composé
-      -- on récupère les ingrédients dans un curseur
-      DECLARE curs_produit_panier CURSOR FOR 
-         SELECT ingredient_id, quantite FROM composant WHERE produit_id = p_produit_id;
-
-      DECLARE CONTINUE HANDLER FOR 
-         NOT FOUND SET done = TRUE;
-
+      -- le produit est composé on utilise le cursor     
       OPEN curs_produit_panier;
 
       loop_curseur: LOOP 
@@ -583,32 +593,32 @@ BEGIN
    DECLARE v_produit_id INT(10) UNSIGNED;
    DECLARE v_quantite DECIMAL(5,2) DEFAULT (0.0);
    DECLARE done INT DEFAULT FALSE;
-
-   -- vérification de la présence de tous les produits en stock
-   SELECT magasin_id INTO v_magasin_id FROM utilisateur WHERE id = p_utilisateur_id;
- 
-   DECLARE curs_produit CURSOR FOR 
+   DECLARE curseur_verification CURSOR FOR 
+      SELECT produit_id,quantite FROM ligne_de_panier WHERE utilisateur_id = p_utilisateur_id;
+   DECLARE curseur_modification CURSOR FOR 
       SELECT produit_id,quantite FROM ligne_de_panier WHERE utilisateur_id = p_utilisateur_id;
 
-   DECLARE CONTINUE HANDLER FOR 
-      NOT FOUND SET done = TRUE;
+   DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
-   OPEN curs_produit;
-   loop_curseur: LOOP 
-      FETCH curs_produit INTO v_produit_id,v_quantite;
+   SELECT magasin_id INTO v_magasin_id FROM utilisateur WHERE id = p_utilisateur_id;
+
+   -- vérification de la présence de tous les produits en stock
+   OPEN curseur_verification;
+   loop_vérification: LOOP 
+      FETCH curseur_verification INTO v_produit_id,v_quantite;
 
       IF done THEN
-         LEAVE loop_curseur;
+         LEAVE loop_vérification;
       END IF;
 
-      IF produit_est_disponible(v_magasin_id,v_produit_id,v_quantite) THEN
+      IF produit_est_disponible(v_magasin_id,v_produit_id,v_quantite) = FALSE THEN
          -- on enlève le produit correspondant et on provoque une erreur
          CALL enleve_panier(p_utilisateur_id,v_produit_id,v_quantite);
          INSERT INTO erreur (message) VALUES ('ERREUR : un produit n''est plus disponible!');
       END IF;
-   END LOOP loop_curseur;
+   END LOOP loop_vérification;
 
-   CLOSE curs_produit;
+   CLOSE curseur_verification;
 
    -- on récupère le montant du panier
    SELECT montant INTO v_montant from panier WHERE utilisateur_id = p_utilisateur_id;
@@ -628,23 +638,20 @@ BEGIN
    -- diminution des stocks 
    SET done = FALSE;
 
-   DECLARE curs_produit CURSOR FOR SELECT produit_id,quantite FROM ligne_de_panier WHERE utilisateur_id = p_utilisateur_id;
-
-   DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
-
-   OPEN curs_produit;
-   loop_curseur: LOOP 
-      FETCH curs_produit INTO v_produit_id,v_quantite;
+  
+   OPEN curseur_modification;
+   loop_modification: LOOP 
+      FETCH curseur_modification INTO v_produit_id,v_quantite;
 
       IF done THEN
-         LEAVE loop_curseur;
+         LEAVE loop_modification;
       END IF;
 
       CALL diminue_stock(v_magasin_id,v_produit_id,v_produit_id);
 
-   END LOOP loop_curseur;
+   END LOOP loop_modification;
 
-   CLOSE curs_produit;
+   CLOSE curseur_modification;
 
    -- on copie les lignes de panier dans les lignes de commande
    INSERT INTO ligne_de_commande (commande_id,produit_id,quantite,prix_unitaire_ht, taux_tva)
@@ -654,6 +661,91 @@ BEGIN
    DELETE FROM ligne_de_panier WHERE utilisateur_id = p_utilisateur_id;
    DELETE FROM panier WHERE utilisateur_id = p_utilisateur_id;
 
+END |
+DELIMITER ;
+
+
+##################################################### PIZZAIOLO PREND COMMANDE #
+DROP PROCEDURE IF EXISTS pizzaoilo_prend_commande;
+DELIMITER |
+CREATE PROCEDURE pizzaoilo_prend_commande(
+   IN p_commande_id INT(10) UNSIGNED) 
+BEGIN
+   DECLARE v_start_date DATE;
+   DECLARE v_start_time TIME;
+   DECLARE v_preparation_delai TIME;
+
+   SELECT jour, heure INTO v_start_date,v_start_time FROM commande WHERE id = p_commande_id;
+
+   SET v_preparation_delai = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time));
+
+   UPDATE commande SET status = 'En préparation', preparation_delai = v_preparation_delai WHERE id = p_commande_id;
+END |
+DELIMITER ;
+
+################################################### PIZZAIOLO TERMINE COMMANDE #
+DROP PROCEDURE IF EXISTS pizzaoilo_termine_commande;
+DELIMITER |
+CREATE PROCEDURE pizzaoilo_termine_commande(
+   IN p_commande_id INT(10) UNSIGNED) 
+BEGIN
+   DECLARE v_start_date DATE;
+   DECLARE v_start_time TIME;
+   DECLARE v_preparation_delai TIME;
+   DECLARE v_preparation_duree TIME;
+
+   SELECT jour, heure, preparation_delai INTO v_start_date,v_start_time,v_preparation_delai FROM commande WHERE id = p_commande_id;
+
+   SET v_preparation_duree = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time)) - v_preparation_delai;
+   
+   UPDATE commande SET status = 'Préparée', preparation_duree = v_preparation_duree WHERE id = p_commande_id;
+END |
+DELIMITER ;
+
+
+####################################################### LIVREUR PREND COMMANDE #
+DROP PROCEDURE IF EXISTS livreur_prend_commande;
+DELIMITER |
+CREATE PROCEDURE livreur_prend_commande(
+   IN p_commande_id INT(10) UNSIGNED) 
+BEGIN
+   DECLARE v_start_date DATE;
+   DECLARE v_start_time TIME;
+   DECLARE v_preparation_delai TIME;
+   DECLARE v_preparation_duree TIME;
+   DECLARE v_livraison_delai TIME;
+
+   SELECT jour, heure, preparation_delai,preparation_duree 
+   INTO v_start_date,v_start_time, v_preparation_delai, v_preparation_duree 
+   FROM commande WHERE id = p_commande_id;
+
+   SET v_livraison_delai = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time)) - v_preparation_delai - v_preparation_duree;
+   
+   UPDATE commande SET status = 'En livraison', livraison_delai = v_livraison_delai WHERE id = p_commande_id;
+END |
+DELIMITER ;
+
+######################################################## CLIENT PREND COMMANDE #
+DROP PROCEDURE IF EXISTS client_prend_commande;
+DELIMITER |
+CREATE PROCEDURE client_prend_commande(
+   IN p_commande_id INT(10) UNSIGNED) 
+BEGIN
+   DECLARE v_start_date DATE;
+   DECLARE v_start_time TIME;
+   DECLARE v_preparation_delai TIME;
+   DECLARE v_preparation_duree TIME;
+   DECLARE v_livraison_delai TIME;
+   DECLARE v_livraison_duree TIME;
+
+   SELECT jour, heure, preparation_delai,preparation_duree,livraison_delai 
+   INTO v_start_date,v_start_time, v_preparation_delai, v_preparation_duree, v_livraison_delai
+   FROM commande WHERE id = p_commande_id;
+
+   SET v_livraison_duree = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time)) - v_preparation_delai - v_preparation_duree - v_livraison_delai;
+   
+
+   UPDATE commande SET status = 'Livrée',  livraison_duree = v_preparation_duree WHERE id = p_commande_id;
 END |
 DELIMITER ;
 

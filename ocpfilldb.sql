@@ -131,27 +131,27 @@ CALL add_composant(@COMP,@ING,5.0,'KG');
 
 ################################################################# LES BOISSONS #
 CALL create_produit('Eau plate - 50cl/24','pack',1,'65465',24,'U',NULL,NULL,NULL,NULL,@COMP);
-CALL create_produit('Eau plate - 50cl','boisson',1,'65465',1,'U',NULL,1.8,NULL,NULL,@ING);
+CALL create_produit('Eau plate - 50cl/1','boisson',1,'65465',1,'U',NULL,1.8,NULL,NULL,@ING);
 CALL add_composant(@COMP,@ING,24,'U');
 
 CALL create_produit('Eau gazeuze - 50cl/24','pack',1,'654898',1,'U',NULL,NULL,NULL,NULL,@COMP);
-CALL create_produit('Eau gazeuze - 50cl','boisson',1,'654898',1,'U',NULL,1.8,NULL,NULL,@ING);
+CALL create_produit('Eau gazeuze - 50cl/1','boisson',1,'654898',1,'U',NULL,1.8,NULL,NULL,@ING);
 CALL add_composant(@COMP,@ING,24,'U');
 
 CALL create_produit('Cola - 33cl/24','pack',1,'654898',1,'U',NULL,NULL,NULL,NULL,@COMP);
-CALL create_produit('Cola - 33cl','boisson',1,'654898',1,'U',NULL,1.8,NULL,NULL,@ING);
+CALL create_produit('Cola - 33cl/1','boisson',1,'654898',1,'U',NULL,1.8,NULL,NULL,@ING);
 CALL add_composant(@COMP,@ING,24,'U');
 
 CALL create_produit('Jus d''orange - 33cl/24','pack',1,'888554',1,'U',NULL,NULL,NULL,NULL,@COMP);
-CALL create_produit('Jus d''orange - 33cl','boisson',1,'888554',1,'U',NULL,1.8,NULL,NULL,@ING);
+CALL create_produit('Jus d''orange - 33cl/1','boisson',1,'888554',1,'U',NULL,1.8,NULL,NULL,@ING);
 CALL add_composant(@COMP,@ING,24,'U');
 
 CALL create_produit('Jus de pomme - 33cl/24','pack',1,'644898',1,'U',NULL,NULL,NULL,NULL,@COMP);
-CALL create_produit('Jus de pomme - 33cl','boisson',1,'644898',1,'U',NULL,2.1,NULL,NULL,@ING);
+CALL create_produit('Jus de pomme - 33cl/1','boisson',1,'644898',1,'U',NULL,2.1,NULL,NULL,@ING);
 CALL add_composant(@COMP,@ING,24,'U');
 
 ################################################################### LES PIZZAS #
-CALL create_produit('Pizza margarite','pizza',1,'Pmargarita',1,'U',NULL,15.3,NULL,NULL,@COMP);
+CALL create_produit('Pizza margarita','pizza',1,'Pmargarita',1,'U',NULL,15.3,NULL,NULL,@COMP);
 CALL cherche_produit_id('farine','vrac',@ID);
 CALL add_composant(@COMP,@ID,0.10,'KG');
 CALL cherche_produit_id('jambon','vrac',@ID);
@@ -166,6 +166,39 @@ SELECT * FROM composition;
 SELECT * FROM preparation;
 SELECT * FROM composant;
 
+SELECT "Livraison des magasins";
 CALL livre_magasin();
-
 SELECT * FROM stock;
+
+SELECT "Le client 8 rempli son panier";
+CALL ajoute_panier(8,get_produit_id("Pizza margarita"),1,10);
+CALL ajoute_panier(8,get_produit_id("Pizza margarita"),1,10);
+CALL ajoute_panier(8,get_produit_id("Cola - 33cl/1"),1,10);
+CALL ajoute_panier(8,get_produit_id("Eau gazeuze - 50cl/1"),1,10);
+SELECT * FROM panier WHERE utilisateur_id = 8;
+SELECT * FROM ligne_de_panier WHERE utilisateur_id = 8;
+
+SELECT "Le client 9 rempli son panier";
+CALL ajoute_panier(9,get_produit_id("Pizza margarita"),1,10);
+CALL ajoute_panier(9,get_produit_id("Cola - 33cl/1"),1,10);
+SELECT * FROM panier WHERE utilisateur_id = 9;
+SELECT * FROM ligne_de_panier WHERE utilisateur_id = 9;
+
+SELECT "Le client 8 valide son panier";
+CALL valide_commande(8,get_client_addresse_id(8),@ID);
+
+SELECT "Le panier est vide";
+SELECT * FROM panier WHERE utilisateur_id = 8;
+SELECT * FROM ligne_de_panier WHERE utilisateur_id = 8;
+
+SELECT "La commande est validée";
+SELECT * FROM commande WHERE utilisateur_id = 8;
+SELECT * FROM ligne_de_commande WHERE commande_id = @ID;
+
+
+SELECT "Le client 8 effectue le paiement par CB";
+CALL add_paiement_carte_bancaire(@ID,34.20,"ERGQGQD6546",@IDPAIEMENT);
+SELECT "LA commande est payée";
+SELECT id,utilisateur_id, status, jour, heure, paiement_OK FROM commande WHERE utilisateur_id = 8;
+SELECT commande_id, paiement_id, montant, type FROM liste_paiement JOIN paiement ON paiement.id = liste_paiement.paiement_id WHERE commande_id = 1;
+

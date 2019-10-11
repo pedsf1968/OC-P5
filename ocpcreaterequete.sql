@@ -420,6 +420,22 @@ END |
 DELIMITER ;
 
 
+######################################################## GET CLIENT ADRESSE ID #
+DROP FUNCTION IF EXISTS get_client_addresse_id;
+DELIMITER |
+CREATE FUNCTION get_client_addresse_id(
+	p_utilisateur_id INT(10) UNSIGNED)
+RETURNS INT(10) UNSIGNED
+DETERMINISTIC
+BEGIN
+	DECLARE v_adresse_id INT(10) UNSIGNED DEFAULT 0;
+
+	SELECT adresse_id INTO v_adresse_id FROM client WHERE utilisateur_id = p_utilisateur_id;
+
+	RETURN (v_adresse_id);
+END |
+DELIMITER ;
+
 
 PREPARE liste_employe FROM
 'SELECT utilisateur.id, utilisateur.prenom, utilisateur.nom, utilisateur.login, utilisateur.magasin_id,employe.role  FROM utilisateur
