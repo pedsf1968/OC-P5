@@ -43,3 +43,11 @@ Base de données MySQL ou PostgreSQL avec un jeu de données de démo :
 un fichier ZIP contenant un dump de votre base de données
 un fichier ZIP contenant l’ensemble des scripts SQL de création de la base de données et du jeu de données de démo
  
+
+**Création de la base de données sous MySQL**
+- source ocpcreatedb.sql
+- source ocpcreateprocedure.sql;
+- source ocpcreaterequete.sql;
+- source ocpfilldb.sql
+
+
