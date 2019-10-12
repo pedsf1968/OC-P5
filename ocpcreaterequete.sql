@@ -437,6 +437,25 @@ END |
 DELIMITER ;
 
 
+
+######################################################### GET ETABLISSEMENT ID #
+DROP FUNCTION IF EXISTS get_etablissement_id;
+DELIMITER |
+CREATE FUNCTION get_etablissement_id(
+	p_nom VARCHAR(20))
+RETURNS INT(10) UNSIGNED
+DETERMINISTIC
+BEGIN
+	DECLARE v_id INT(10) UNSIGNED DEFAULT 0;
+
+	SELECT DISTINCT id INTO v_id FROM etablissement WHERE nom LIKE CONCAT('%',p_nom,'%')
+	ORDER BY id ASC LIMIT 1;
+
+	RETURN (v_id);
+END |
+DELIMITER ;
+
+
 PREPARE liste_employe FROM
 'SELECT utilisateur.id, utilisateur.prenom, utilisateur.nom, utilisateur.login, utilisateur.magasin_id,employe.role  FROM utilisateur
 JOIN employe ON employe.utilisateur_id = utilisateur.id';

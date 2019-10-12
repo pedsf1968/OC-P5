@@ -236,6 +236,11 @@ BEGIN
 
    INSERT INTO liste_paiement (commande_id,paiement_id,montant)
    VALUES (p_commande_id, p_paiement_id, p_montant); 
+
+   IF reste_du(p_commande_id) = 0 THEN
+      UPDATE commande SET paiement_ok = TRUE WHERE id = p_commande_id;
+   END IF;
+
 END |
 DELIMITER ;
 
@@ -256,6 +261,10 @@ BEGIN
 
    INSERT INTO liste_paiement (commande_id,paiement_id,montant)
    VALUES (p_commande_id, p_paiement_id, p_montant); 
+
+   IF reste_du(p_commande_id) = 0 THEN
+      UPDATE commande SET paiement_ok = TRUE WHERE id = p_commande_id;
+   END IF;
 END |
 DELIMITER ;
 
@@ -277,6 +286,11 @@ BEGIN
 
    INSERT INTO liste_paiement (commande_id,paiement_id,montant)
    VALUES (p_commande_id, p_paiement_id, p_montant); 
+
+   IF reste_du(p_commande_id) = 0 THEN
+      UPDATE commande SET paiement_ok = TRUE WHERE id = p_commande_id;
+   END IF;
+
 END |
 DELIMITER ;
 
@@ -292,19 +306,32 @@ BEGIN
 
    INSERT INTO liste_paiement (commande_id,paiement_id,montant)
    VALUES (p_commande_id, p_paiement_id, p_montant); 
+
+   IF reste_du(p_commande_id) = 0 THEN
+      UPDATE commande SET paiement_ok = TRUE WHERE id = p_commande_id;
+   END IF;
 END |
 DELIMITER ;
 
 ##################################################################### RESTE DU #
-DROP PROCEDURE IF EXISTS reste_du;
+DROP FUNCTION IF EXISTS reste_du;
 DELIMITER |
-CREATE PROCEDURE reste_du(
-   IN p_commande_id INT(10) UNSIGNED,
-   OUT p_montant DECIMAL(5,2))
+CREATE FUNCTION reste_du(
+   p_commande_id INT(10) UNSIGNED)
+RETURNS DECIMAL(5,2)
+DETERMINISTIC
 BEGIN
-   SELECT montant INTO p_montant FROM commande WHERE id = p_commande_id;
+   DECLARE v_montant DECIMAL(5,2);
 
-   SELECT p_montant-SUM(montant) INTO p_montant FROM liste_paiement WHERE commande_id = p_commande_id;
+   SELECT montant INTO v_montant FROM commande WHERE id = p_commande_id;
+
+   SELECT v_montant-SUM(montant) INTO v_montant FROM liste_paiement WHERE commande_id = p_commande_id;
+
+   IF v_montant IS NULL THEN
+      SELECT montant INTO v_montant FROM commande WHERE id = p_commande_id;
+   END IF;
+
+   RETURN (v_montant);
 END |
 DELIMITER ;
 
@@ -666,9 +693,9 @@ DELIMITER ;
 
 
 ##################################################### PIZZAIOLO PREND COMMANDE #
-DROP PROCEDURE IF EXISTS pizzaoilo_prend_commande;
+DROP PROCEDURE IF EXISTS pizzaiolo_prend_commande;
 DELIMITER |
-CREATE PROCEDURE pizzaoilo_prend_commande(
+CREATE PROCEDURE pizzaiolo_prend_commande(
    IN p_commande_id INT(10) UNSIGNED) 
 BEGIN
    DECLARE v_start_date DATE;
@@ -684,9 +711,9 @@ END |
 DELIMITER ;
 
 ################################################### PIZZAIOLO TERMINE COMMANDE #
-DROP PROCEDURE IF EXISTS pizzaoilo_termine_commande;
+DROP PROCEDURE IF EXISTS pizzaiolo_termine_commande;
 DELIMITER |
-CREATE PROCEDURE pizzaoilo_termine_commande(
+CREATE PROCEDURE pizzaiolo_termine_commande(
    IN p_commande_id INT(10) UNSIGNED) 
 BEGIN
    DECLARE v_start_date DATE;
@@ -742,10 +769,15 @@ BEGIN
    INTO v_start_date,v_start_time, v_preparation_delai, v_preparation_duree, v_livraison_delai
    FROM commande WHERE id = p_commande_id;
 
-   SET v_livraison_duree = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time)) - v_preparation_delai - v_preparation_duree - v_livraison_delai;
-   
+   -- un client peut prendre la commande directement en magasin donc elle ne passe pas par la livraison
+   IF v_livraison_delai IS NULL THEN
+      SET v_livraison_duree = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time)) - v_preparation_delai - v_preparation_duree;
+      UPDATE commande SET status = 'Livrée',  livraison_delai = v_livraison_duree, livraison_duree = v_livraison_duree WHERE id = p_commande_id;      
+   ELSE
+      SET v_livraison_duree = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time)) - v_preparation_delai - v_preparation_duree - v_livraison_delai;
+      UPDATE commande SET status = 'Livrée',  livraison_duree = v_preparation_duree WHERE id = p_commande_id;
+   END IF;
 
-   UPDATE commande SET status = 'Livrée',  livraison_duree = v_preparation_duree WHERE id = p_commande_id;
 END |
 DELIMITER ;
 
