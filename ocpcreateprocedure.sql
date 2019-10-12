@@ -91,7 +91,7 @@ BEGIN
    SET p_id = 0;
    SET v_adresse_id = 0;
 
-   -- création de l'addresse
+   -- création de l'adresse
    CALL create_adresse(p_numero, p_voie, p_ville, p_code, v_adresse_id);
 
    -- recherche si le fournisseur existe
@@ -321,17 +321,17 @@ CREATE FUNCTION reste_du(
 RETURNS DECIMAL(5,2)
 DETERMINISTIC
 BEGIN
+   DECLARE v_total_paiement DECIMAL(5,2);
    DECLARE v_montant DECIMAL(5,2);
 
-   SELECT montant INTO v_montant FROM commande WHERE id = p_commande_id;
+   SELECT montant_TTC INTO v_montant FROM commande WHERE id = p_commande_id;
+   SELECT SUM(montant) INTO v_total_paiement FROM liste_paiement WHERE commande_id = p_commande_id;
 
-   SELECT v_montant-SUM(montant) INTO v_montant FROM liste_paiement WHERE commande_id = p_commande_id;
-
-   IF v_montant IS NULL THEN
-      SELECT montant INTO v_montant FROM commande WHERE id = p_commande_id;
+   IF v_total_paiement IS NULL THEN
+      RETURN (v_montant);
+   ELSE
+      RETURN (v_montant - v_total_paiement);
    END IF;
-
-   RETURN (v_montant);
 END |
 DELIMITER ;
 
@@ -352,19 +352,24 @@ CREATE PROCEDURE create_produit(
    IN p_unite VARCHAR(3),
    IN p_prix_achat_ht DECIMAL(5,2),
    IN p_prix_vente_ht DECIMAL(5,2), 
+   IN p_tva_emporte DECIMAL(3,1),
+   IN p_tva_livre DECIMAL(3,1),
    IN p_formule TEXT,
    IN p_recette TEXT,
    OUT p_id INT(10) UNSIGNED)
 BEGIN
-   INSERT INTO produit (designation,categorie,fournisseur_id,reference,quantite,unite,prix_achat_ht,prix_vente_ht) 
-   VALUES (p_designation,p_categorie,p_fournisseur_id,p_reference,p_quantite,p_unite,p_prix_achat_ht,p_prix_vente_ht);
+   INSERT INTO produit (designation,categorie,fournisseur_id,reference,quantite,unite,prix_achat_ht,prix_vente_ht,tva_emporte,tva_livre) 
+   VALUES (p_designation,p_categorie,p_fournisseur_id,p_reference,p_quantite,p_unite,p_prix_achat_ht,p_prix_vente_ht,p_tva_emporte,p_tva_livre);
 
+   -- on récupère l'identifiant du produit créé
    SELECT id INTO p_id FROM produit WHERE designation = p_designation;
 
+   -- création de la composition 
    IF p_formule IS NOT NULL THEN
       INSERT INTO composition (produit_id,formule) VALUES (p_id,p_formule); 
    END IF;
 
+   -- création de la recette
    IF p_recette IS NOT NULL THEN
       INSERT INTO preparation (produit_id,recette) VALUES (p_id,p_recette); 
    END IF;
@@ -475,7 +480,7 @@ DROP PROCEDURE IF EXISTS update_montant_panier;
 DELIMITER |
 CREATE PROCEDURE update_montant_panier(
    IN p_utilisateur_id INT(10),
-   IN p_montant DECIMAL (5,2))
+   IN p_livraison TINYINT)
 BEGIN
    DECLARE v_montant_old DECIMAL(5,2) DEFAULT (0.0);
 
@@ -627,6 +632,7 @@ BEGIN
 
    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
+   -- on sélectionne le magasin du client pour chercher les stock
    SELECT magasin_id INTO v_magasin_id FROM utilisateur WHERE id = p_utilisateur_id;
 
    -- vérification de la présence de tous les produits en stock
@@ -650,15 +656,15 @@ BEGIN
    -- on récupère le montant du panier
    SELECT montant INTO v_montant from panier WHERE utilisateur_id = p_utilisateur_id;
 
-   -- on créée une nouvelle commande
-   INSERT INTO commande (utilisateur_id, adresse_id, status, jour, heure, montant)
-   VALUES (p_utilisateur_id, p_adresse_id, 'En attente', v_jour, v_heure, v_montant);
+   -- on créée une nouvelle commande avec un montant à 0
+   INSERT INTO commande (utilisateur_id, adresse_id, statut, jour, heure, montant_TTC)
+   VALUES (p_utilisateur_id, p_adresse_id, 'En attente', v_jour, v_heure, 0.0);
 
    -- on récupère l'identifiant de la commande
    SELECT DISTINCT id INTO p_commande_id FROM commande
    WHERE utilisateur_id = p_utilisateur_id 
    AND adresse_id = p_adresse_id 
-   AND status = 'En attente' 
+   AND statut = 'En attente' 
    AND jour = v_jour
    AND heure = v_heure;
 
@@ -681,8 +687,21 @@ BEGIN
    CLOSE curseur_modification;
 
    -- on copie les lignes de panier dans les lignes de commande
-   INSERT INTO ligne_de_commande (commande_id,produit_id,quantite,prix_unitaire_ht, taux_tva)
-   SELECT p_commande_id,produit_id,quantite,prix_unitaire_ht, taux_tva FROM ligne_de_panier WHERE utilisateur_id = p_utilisateur_id;
+   IF est_addresse_de_magasin(p_adresse_id) THEN
+      -- on récupère la TVA des produits à emporter
+      INSERT INTO ligne_de_commande (commande_id,produit_id,quantite,prix_unitaire_ht, taux_tva)
+      SELECT p_commande_id,produit_id,quantite,prix_unitaire_ht, tva_emporte FROM ligne_de_panier 
+      JOIN produit ON ligne_de_panier.produit_id = produit.id WHERE utilisateur_id = p_utilisateur_id;
+   ELSE
+      -- on récupère la TVA des produits à livrer
+      INSERT INTO ligne_de_commande (commande_id,produit_id,quantite,prix_unitaire_ht, taux_tva)
+      SELECT p_commande_id,produit_id,quantite,prix_unitaire_ht, tva_livre FROM ligne_de_panier 
+      JOIN produit ON ligne_de_panier.produit_id = produit.id WHERE utilisateur_id = p_utilisateur_id;
+   END IF;
+
+   -- on calcule et initialise le montant de la commande
+   UPDATE commande 
+   SET montant_TTC = (SELECT SUM(prix_unitaire_ht*quantite*(1+taux_tva/100))) WHERE id = p_commande_id;
 
    -- on vide le panier
    DELETE FROM ligne_de_panier WHERE utilisateur_id = p_utilisateur_id;
@@ -701,12 +720,17 @@ BEGIN
    DECLARE v_start_date DATE;
    DECLARE v_start_time TIME;
    DECLARE v_preparation_delai TIME;
+   DECLARE v_statut ENUM ('En attente', 'En préparation', 'Préparée', 'En livraison', 'Livrée', 'Clos');
 
-   SELECT jour, heure INTO v_start_date,v_start_time FROM commande WHERE id = p_commande_id;
+   SELECT statut, jour, heure INTO v_statut,v_start_date,v_start_time FROM commande WHERE id = p_commande_id;
 
-   SET v_preparation_delai = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time));
-
-   UPDATE commande SET status = 'En préparation', preparation_delai = v_preparation_delai WHERE id = p_commande_id;
+   -- le pizzaiolo ne peut prendre que les statut en attente
+   IF statut = 'En attente' THEN
+      SET v_preparation_delai = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time));
+      UPDATE commande SET statut = 'En préparation', preparation_delai = v_preparation_delai WHERE id = p_commande_id;
+   ELSE
+      INSERT INTO erreur (message) VALUES ('ERREUR : la commande n''est pas en attente!');
+   END IF;
 END |
 DELIMITER ;
 
@@ -720,12 +744,17 @@ BEGIN
    DECLARE v_start_time TIME;
    DECLARE v_preparation_delai TIME;
    DECLARE v_preparation_duree TIME;
+   DECLARE v_statut ENUM ('En attente', 'En préparation', 'Préparée', 'En livraison', 'Livrée', 'Clos');
 
-   SELECT jour, heure, preparation_delai INTO v_start_date,v_start_time,v_preparation_delai FROM commande WHERE id = p_commande_id;
+   SELECT statut, jour, heure, preparation_delai INTO v_statut, v_start_date,v_start_time,v_preparation_delai FROM commande WHERE id = p_commande_id;
 
-   SET v_preparation_duree = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time)) - v_preparation_delai;
-   
-   UPDATE commande SET status = 'Préparée', preparation_duree = v_preparation_duree WHERE id = p_commande_id;
+   -- le pizzaiolo ne peut terminer une commande qui n'est pas en préparation
+   IF statut = 'En préparation' THEN
+      SET v_preparation_duree = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time)) - v_preparation_delai;   
+      UPDATE commande SET statut = 'Préparée', preparation_duree = v_preparation_duree WHERE id = p_commande_id;
+   ELSE
+      INSERT INTO erreur (message) VALUES ('ERREUR : la commande n''est pas en préparation!');   
+   END IF;
 END |
 DELIMITER ;
 
@@ -741,14 +770,18 @@ BEGIN
    DECLARE v_preparation_delai TIME;
    DECLARE v_preparation_duree TIME;
    DECLARE v_livraison_delai TIME;
+   DECLARE v_statut ENUM ('En attente', 'En préparation', 'Préparée', 'En livraison', 'Livrée', 'Clos');
 
-   SELECT jour, heure, preparation_delai,preparation_duree 
-   INTO v_start_date,v_start_time, v_preparation_delai, v_preparation_duree 
+   SELECT statut, jour, heure, preparation_delai,preparation_duree 
+   INTO v_statut,v_start_date,v_start_time, v_preparation_delai, v_preparation_duree 
    FROM commande WHERE id = p_commande_id;
 
-   SET v_livraison_delai = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time)) - v_preparation_delai - v_preparation_duree;
-   
-   UPDATE commande SET status = 'En livraison', livraison_delai = v_livraison_delai WHERE id = p_commande_id;
+   IF statut = 'Préparée' THEN
+      SET v_livraison_delai = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time)) - v_preparation_delai - v_preparation_duree;
+      UPDATE commande SET statut = 'En livraison', livraison_delai = v_livraison_delai WHERE id = p_commande_id;
+   ELSE 
+      INSERT INTO erreur (message) VALUES ('ERREUR : la commande n''est pas préparée!');   
+   END IF;
 END |
 DELIMITER ;
 
@@ -764,18 +797,24 @@ BEGIN
    DECLARE v_preparation_duree TIME;
    DECLARE v_livraison_delai TIME;
    DECLARE v_livraison_duree TIME;
+   DECLARE v_statut ENUM ('En attente', 'En préparation', 'Préparée', 'En livraison', 'Livrée', 'Clos');
 
-   SELECT jour, heure, preparation_delai,preparation_duree,livraison_delai 
-   INTO v_start_date,v_start_time, v_preparation_delai, v_preparation_duree, v_livraison_delai
+   SELECT statut, jour, heure, preparation_delai,preparation_duree,livraison_delai 
+   INTO v_statut, v_start_date,v_start_time, v_preparation_delai, v_preparation_duree, v_livraison_delai
    FROM commande WHERE id = p_commande_id;
+
+   -- la commande doit être préparée pour pouvoir passer en status livrée
+   IF statut <> 'Préparée' OR statut <> 'En livraison' THEN
+      INSERT INTO erreur (message) VALUES ('ERREUR : la commande n''est pas préparée!');   
+   END IF;
 
    -- un client peut prendre la commande directement en magasin donc elle ne passe pas par la livraison
    IF v_livraison_delai IS NULL THEN
       SET v_livraison_duree = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time)) - v_preparation_delai - v_preparation_duree;
-      UPDATE commande SET status = 'Livrée',  livraison_delai = v_livraison_duree, livraison_duree = v_livraison_duree WHERE id = p_commande_id;      
+      UPDATE commande SET statut = 'Livrée',  livraison_delai = v_livraison_duree, livraison_duree = v_livraison_duree WHERE id = p_commande_id;      
    ELSE
       SET v_livraison_duree = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time)) - v_preparation_delai - v_preparation_duree - v_livraison_delai;
-      UPDATE commande SET status = 'Livrée',  livraison_duree = v_preparation_duree WHERE id = p_commande_id;
+      UPDATE commande SET statut = 'Livrée',  livraison_duree = v_preparation_duree WHERE id = p_commande_id;
    END IF;
 
 END |

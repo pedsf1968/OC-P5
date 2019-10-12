@@ -25,6 +25,9 @@ INSERT INTO erreur (message) VALUES ('ERREUR : le login doit être unique!');
 INSERT INTO erreur (message) VALUES ('ERREUR : le nom du magasin doit être unique!');
 INSERT INTO erreur (message) VALUES ('ERREUR : le nom du fournisseur doit être unique!');
 INSERT INTO erreur (message) VALUES ('ERREUR : un produit n''est plus disponible!');
+INSERT INTO erreur (message) VALUES ('ERREUR : la commande n''est pas en attente!');
+INSERT INTO erreur (message) VALUES ('ERREUR : la commande n''est pas en préparation!');   
+INSERT INTO erreur (message) VALUES ('ERREUR : la commande n''est pas préparée!');   
 
 SELECT * FROM erreur;
 
@@ -238,6 +241,8 @@ CREATE TABLE produit (
                 unite VARCHAR(3),
                 prix_achat_ht DECIMAL(5,2) DEFAULT (0.0),
                 prix_vente_ht DECIMAL(5,2) DEFAULT (0.0),
+                tva_emporte DECIMAL(3,1) DEFAULT (10.0) NOT NULL,
+                tva_livre DECIMAL(3,1) DEFAULT (10.0) NOT NULL,
                 PRIMARY KEY (id)
 )ENGINE=InnoDB;
 
@@ -344,7 +349,8 @@ CREATE TABLE panier (
                 utilisateur_id INT UNSIGNED NOT NULL,
                 jour DATE DEFAULT (CURRENT_DATE()) NOT NULL,
                 heure TIME DEFAULT (CURRENT_TIME()) NOT NULL,
-                montant DECIMAL(5,2) DEFAULT (0.0) NOT NULL,
+                montant_ttc DECIMAL(5,2) DEFAULT (0.0) NOT NULL,
+                livraison TINYINT UNSIGNED DEFAULT TRUE NOT NULL,
                 PRIMARY KEY (utilisateur_id)
 )ENGINE=InnoDB;
 
@@ -364,7 +370,7 @@ CREATE TABLE ligne_de_panier (
                 produit_id INT UNSIGNED NOT NULL,
                 quantite DECIMAL(2) DEFAULT (0) NOT NULL,
                 prix_unitaire_ht DECIMAL(5,2) DEFAULT (0.0) NOT NULL,
-                taux_tva DECIMAL(3,1) DEFAULT (10.0) NOT NULL,
+                taux_tva DECIMAL(3,1) DEFAULT (0.0) NOT NULL,
                 PRIMARY KEY (utilisateur_id, produit_id)
 )ENGINE=InnoDB;
 
@@ -389,7 +395,7 @@ CREATE TABLE commande (
                 id INT UNSIGNED AUTO_INCREMENT NOT NULL,
                 utilisateur_id INT UNSIGNED NOT NULL,
                 adresse_id INT UNSIGNED NOT NULL,
-                status ENUM ('En attente', 'En préparation', 'Préparée', 'En livraison', 'Livrée', 'Clos') NOT NULL,
+                statut ENUM ('En attente', 'En préparation', 'Préparée', 'En livraison', 'Livrée', 'Clos') NOT NULL,
                 jour DATE DEFAULT (CURRENT_DATE()) NOT NULL,
                 heure TIME DEFAULT (CURRENT_TIME()) NOT NULL,
                 preparation_delai TIME,
@@ -397,7 +403,7 @@ CREATE TABLE commande (
                 livraison_delai TIME,
                 livraison_duree TIME,
                 paiement_OK BOOLEAN DEFAULT false NOT NULL,
-                montant DECIMAL(5,2) DEFAULT (0.0) NOT NULL,
+                montant_ttc DECIMAL(5,2) DEFAULT (0.0) NOT NULL,
                 PRIMARY KEY (id)
 )ENGINE=InnoDB;
 

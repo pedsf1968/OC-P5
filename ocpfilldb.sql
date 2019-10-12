@@ -1,4 +1,3 @@
-
 ################################################################################
 # OC PIZZA                                                       FILL DATABASE #
 ################################################################################
@@ -69,89 +68,95 @@ CALL create_client('M','DUPON','Daniel','Daniel',SHA1('DUPON'),2,'0381565422','d
 ################################################################################
 
 ################################################################# LES PRODUITS #
-CALL create_produit('farine de blé T55 - 25Kg','ingrédient',1,'fkjh6546',25.00,'KG',33.40,NULL,'farine',NULL,@COMP);
-CALL create_produit('farine de blé T55 - Vrac','vrac',1,'fkjh6546',1.0,'KG',NULL,NULL,'farine',NULL,@ING);
+# create_produit( IN p_designation,p_categorie,p_fournisseur_id,p_reference,   #
+#                    p_quantite,p_unite, p_prix_achat_ht, p_prix_vente_ht,     #
+#                    p_tva_emporte, p_tva_livre, p_formule, p_recette,         #
+#                 OUT p_id INT(10))                                            #
+################################################################################
+
+CALL create_produit('farine de blé T55 - 25Kg','ingrédient',1,'fkjh6546',25.00,'KG',33.40,NULL,0.0,0.0,'farine',NULL,@COMP);
+CALL create_produit('farine de blé T55 - Vrac','vrac',1,'fkjh6546',1.0,'KG',NULL,NULL,0.0,0.0,'farine',NULL,@ING);
 CALL add_composant(@COMP,@ING,25.0,'KG');
 
-CALL create_produit('Champignon pied coupé moyen catégorie 1 - 3Kg','ingrédient',1,'31347',3.00,'KG',14.5,NULL,'champignon',NULL,@COMP);
-CALL create_produit('Champignon pied coupé moyen catégorie 1 - Vrac','vrac',1,'31347',1.00,'KG',NULL,NULL,'champignon',NULL,@ING);
+CALL create_produit('Champignon pied coupé moyen catégorie 1 - 3Kg','ingrédient',1,'31347',3.00,'KG',14.5,NULL,0.0,0.0,'champignon',NULL,@COMP);
+CALL create_produit('Champignon pied coupé moyen catégorie 1 - Vrac','vrac',1,'31347',1.00,'KG',NULL,NULL,0.0,0.0,'champignon',NULL,@ING);
 CALL add_composant(@COMP,@ING,3.0,'KG');
 
-CALL create_produit('Poivron mixte calibre 80/100 catégorie 1 - 4Kg','ingrédient',1,'82657',4.00,'KG',15.00,NULL,'poivron',NULL,@COMP);
-CALL create_produit('Poivron mixte calibre 80/100 catégorie 1 - Vrac','vrac',1,'82657',1.00,'KG',NULL,NULL,'poivron',NULL,@ING);
+CALL create_produit('Poivron mixte calibre 80/100 catégorie 1 - 4Kg','ingrédient',1,'82657',4.00,'KG',15.00,NULL,0.0,0.0,'poivron',NULL,@COMP);
+CALL create_produit('Poivron mixte calibre 80/100 catégorie 1 - Vrac','vrac',1,'82657',1.00,'KG',NULL,NULL,0.0,0.0,'poivron',NULL,@ING);
 CALL add_composant(@COMP,@ING,4.0,'KG');
 
-CALL create_produit('Tomate ronde calibre 57/67 océanecatégorie extra - 6Kg','ingrédient',1,'93945',6.00,'KG',15.00,NULL,'tomate',NULL,@COMP);
-CALL create_produit('Tomate ronde calibre 57/67 océanecatégorie extra - Vrac','vrac',1,'93945',1.0,'KG',NULL,NULL,'tomate',NULL,@ING);
+CALL create_produit('Tomate ronde calibre 57/67 océanecatégorie extra - 6Kg','ingrédient',1,'93945',6.00,'KG',15.00,NULL,0.0,0.0,'tomate',NULL,@COMP);
+CALL create_produit('Tomate ronde calibre 57/67 océanecatégorie extra - Vrac','vrac',1,'93945',1.0,'KG',NULL,NULL,0.0,0.0,'tomate',NULL,@ING);
 CALL add_composant(@COMP,@ING,6.0,'KG');
 
-CALL create_produit('Aubergine calibre 300/400 catégorie 1 - 6Kg','ingrédient',1,'59884',6.00,'KG',20.00,NULL,'aubergine',NULL,@COMP);
-CALL create_produit('Aubergine calibre 300/400 catégorie 1 - Vrac','vrac',1,'59884',1.00,'KG',NULL,NULL,'aubergine',NULL,@ING);
+CALL create_produit('Aubergine calibre 300/400 catégorie 1 - 6Kg','ingrédient',1,'59884',6.00,'KG',20.00,NULL,0.0,0.0,'aubergine',NULL,@COMP);
+CALL create_produit('Aubergine calibre 300/400 catégorie 1 - Vrac','vrac',1,'59884',1.00,'KG',NULL,NULL,0.0,0.0,'aubergine',NULL,@ING);
 CALL add_composant(@COMP,@ING,6.0,'KG');
 
-CALL create_produit('Oignon charcutier calibre 70/100 catégorie 1 - 10Kg','ingrédient',1,'702815',10.00,'KG',20.00,NULL,'oignon',NULL,@COMP);
-CALL create_produit('Oignon charcutier calibre 70/100 catégorie 1 - Vrac','vrac',1,'702815',1.00,'KG',NULL,NULL,'oignon',NULL,@ING);
+CALL create_produit('Oignon charcutier calibre 70/100 catégorie 1 - 10Kg','ingrédient',1,'702815',10.00,'KG',20.00,NULL,0.0,0.0,'oignon',NULL,@COMP);
+CALL create_produit('Oignon charcutier calibre 70/100 catégorie 1 - Vrac','vrac',1,'702815',1.00,'KG',NULL,NULL,0.0,0.0,'oignon',NULL,@ING);
 CALL add_composant(@COMP,@ING,10.0,'KG');
 
-CALL create_produit('Bacon standard sous vide fumé - 1.5Kg','ingrédient',2,'236179',1.50,'KG',55.00,NULL,'porc',NULL,@COMP);
-CALL create_produit('Bacon standard sous vide fumé - Vrac','vrac',2,'236179',1.0,'KG',NULL,NULL,'porc',NULL,@ING);
+CALL create_produit('Bacon standard sous vide fumé - 1.5Kg','ingrédient',2,'236179',1.50,'KG',55.00,NULL,0.0,0.0,'porc',NULL,@COMP);
+CALL create_produit('Bacon standard sous vide fumé - Vrac','vrac',2,'236179',1.0,'KG',NULL,NULL,0.0,0.0,'porc',NULL,@ING);
 CALL add_composant(@COMP,@ING,1.5,'KG');
 
-CALL create_produit('Jambon de Vendée à l''ancienne - 3Kg','ingrédient',2,'235440',3.00,'KG',35.00,NULL,'porc',NULL,@COMP);
-CALL create_produit('Jambon de Vendée à l''ancienne - Vrac','vrac',2,'235440',1.0,'KG',NULL,NULL,'porc',NULL,@ING);
+CALL create_produit('Jambon de Vendée à l''ancienne - 3Kg','ingrédient',2,'235440',3.00,'KG',35.00,NULL,0.0,0.0,'porc',NULL,@COMP);
+CALL create_produit('Jambon de Vendée à l''ancienne - Vrac','vrac',2,'235440',1.0,'KG',NULL,NULL,0.0,0.0,'porc',NULL,@ING);
 CALL add_composant(@COMP,@ING,3.0,'KG');
 
-CALL create_produit('Chorizo fort - 1.8Kg','ingrédient',2,'157623',1.8,'KG',35.00,NULL,'porc',NULL,@COMP);
-CALL create_produit('Chorizo fort - Vrac','vrac',2,'157623',1.0,'KG',NULL,NULL,'porc',NULL,@ING);
+CALL create_produit('Chorizo fort - 1.8Kg','ingrédient',2,'157623',1.8,'KG',35.00,NULL,0.0,0.0,'porc',NULL,@COMP);
+CALL create_produit('Chorizo fort - Vrac','vrac',2,'157623',1.0,'KG',NULL,NULL,0.0,0.0,'porc',NULL,@ING);
 CALL add_composant(@COMP,@ING,1.8,'KG');
 
-CALL create_produit('Saumon sauvage filet sous vide - 5Kg','ingrédient',1,'706424',5.0,'KG',111.10,NULL,'poisson',NULL,@COMP);
-CALL create_produit('Saumon sauvage filet sous vide - Vrac','vrac',1,'706424',1.0,'KG',NULL,NULL,'poisson',NULL,@ING);
+CALL create_produit('Saumon sauvage filet sous vide - 5Kg','ingrédient',1,'706424',5.0,'KG',111.10,NULL,0.0,0.0,'poisson',NULL,@COMP);
+CALL create_produit('Saumon sauvage filet sous vide - Vrac','vrac',1,'706424',1.0,'KG',NULL,NULL,0.0,0.0,'poisson',NULL,@ING);
 CALL add_composant(@COMP,@ING,5.0,'KG');
 
-CALL create_produit('Oeuf calibre gros fermier - 30U','ingrédient',1,'159123',30,'U',10.1,NULL,'oeuf',NULL,@COMP);
-CALL create_produit('Oeuf calibre gros fermier - Vrac','vrac',1,'159123',1,'U',NULL,NULL,'oeuf',NULL,@ING);
+CALL create_produit('Oeuf calibre gros fermier - 30U','ingrédient',1,'159123',30,'U',10.1,NULL,0.0,0.0,'oeuf',NULL,@COMP);
+CALL create_produit('Oeuf calibre gros fermier - Vrac','vrac',1,'159123',1,'U',NULL,NULL,0.0,0.0,'oeuf',NULL,@ING);
 CALL add_composant(@COMP,@ING,30,'U');
 
-CALL create_produit('Lait 1/2 écrémé UHT 1.6% MG brique - 6L','ingrédient',1,'247890',6,'L',0.89,NULL,'lait',NULL,@COMP);
-CALL create_produit('Lait 1/2 écrémé UHT 1.6% MG brique - Vrac','vrac',1,'247890',1,'L',NULL,NULL,'lait',NULL,@ING);
+CALL create_produit('Lait 1/2 écrémé UHT 1.6% MG brique - 6L','ingrédient',1,'247890',6,'L',0.89,NULL,0.0,0.0,'lait',NULL,@COMP);
+CALL create_produit('Lait 1/2 écrémé UHT 1.6% MG brique - Vrac','vrac',1,'247890',1,'L',NULL,NULL,0.0,0.0,'lait',NULL,@ING);
 CALL add_composant(@COMP,@ING,6.0,'L');
 
-CALL create_produit('Crème liquide UHT 30% MG - 6L','ingrédient',1,'246755',6,'L',1.10,NULL,'lait',NULL,@COMP);
-CALL create_produit('Crème liquide UHT 30% MG - Vrac','vrac',1,'246755',1,'L',NULL,NULL,'lait',NULL,@ING);
+CALL create_produit('Crème liquide UHT 30% MG - 6L','ingrédient',1,'246755',6,'L',1.10,NULL,0.0,0.0,'lait',NULL,@COMP);
+CALL create_produit('Crème liquide UHT 30% MG - Vrac','vrac',1,'246755',1,'L',NULL,NULL,0.0,0.0,'lait',NULL,@ING);
 CALL add_composant(@COMP,@ING,6.0,'L');
 
-CALL create_produit('Sauce tomate - 6L','ingrédient',1,'247890',6,'L',2.59,NULL,'tomate,poivre,sel',NULL,@COMP);
-CALL create_produit('Sauce tomate - Vrac','vrac',1,'247890',1,'L',NULL,NULL,'tomate,poivre,sel',NULL,@ING);
+CALL create_produit('Sauce tomate - 6L','ingrédient',1,'247890',6,'L',2.59,NULL,0.0,0.0,'tomate,poivre,sel',NULL,@COMP);
+CALL create_produit('Sauce tomate - Vrac','vrac',1,'247890',1,'L',NULL,NULL,0.0,0.0,'tomate,poivre,sel',NULL,@ING);
 CALL add_composant(@COMP,@ING,6.0,'L');
 
-CALL create_produit('Fromage rapé - 5Kg','ingrédient',2,'654654',5.00,'KG',50.00,NULL,'fromage',NULL,@COMP);
-CALL create_produit('Fromage rapé - Vrac','vrac',2,'654654',1.0,'KG',NULL,NULL,'fromage',NULL,@ING);
+CALL create_produit('Fromage rapé - 5Kg','ingrédient',2,'654654',5.00,'KG',50.00,NULL,0.0,0.0,'fromage',NULL,@COMP);
+CALL create_produit('Fromage rapé - Vrac','vrac',2,'654654',1.0,'KG',NULL,NULL,0.0,0.0,'fromage',NULL,@ING);
 CALL add_composant(@COMP,@ING,5.0,'KG');
 
 ################################################################# LES BOISSONS #
-CALL create_produit('Eau plate - 50cl/24','pack',1,'65465',24,'U',NULL,NULL,NULL,NULL,@COMP);
-CALL create_produit('Eau plate - 50cl/1','boisson',1,'65465',1,'U',NULL,1.8,NULL,NULL,@ING);
+CALL create_produit('Eau plate - 50cl/24','pack',1,'65465',24,'U',NULL,NULL,0.0,0.0,'eau',NULL,@COMP);
+CALL create_produit('Eau plate - 50cl/1','boisson',1,'65465',1,'U',NULL,1.8,5.5,10.0,'eau',NULL,@ING);
 CALL add_composant(@COMP,@ING,24,'U');
 
-CALL create_produit('Eau gazeuze - 50cl/24','pack',1,'654898',1,'U',NULL,NULL,NULL,NULL,@COMP);
-CALL create_produit('Eau gazeuze - 50cl/1','boisson',1,'654898',1,'U',NULL,1.8,NULL,NULL,@ING);
+CALL create_produit('Eau gazeuze - 50cl/24','pack',1,'654898',1,'U',NULL,NULL,0.0,0.0,'eau',NULL,@COMP);
+CALL create_produit('Eau gazeuze - 50cl/1','boisson',1,'654898',1,'U',NULL,1.8,5.5,10.0,'eau',NULL,@ING);
 CALL add_composant(@COMP,@ING,24,'U');
 
-CALL create_produit('Cola - 33cl/24','pack',1,'654898',1,'U',NULL,NULL,NULL,NULL,@COMP);
-CALL create_produit('Cola - 33cl/1','boisson',1,'654898',1,'U',NULL,1.8,NULL,NULL,@ING);
+CALL create_produit('Cola - 33cl/24','pack',1,'654898',1,'U',NULL,NULL,0.0,0.0,NULL,NULL,@COMP);
+CALL create_produit('Cola - 33cl/1','boisson',1,'654898',1,'U',NULL,1.8,5.5,10.0,NULL,NULL,@ING);
 CALL add_composant(@COMP,@ING,24,'U');
 
-CALL create_produit('Jus d''orange - 33cl/24','pack',1,'888554',1,'U',NULL,NULL,NULL,NULL,@COMP);
-CALL create_produit('Jus d''orange - 33cl/1','boisson',1,'888554',1,'U',NULL,1.8,NULL,NULL,@ING);
+CALL create_produit('Jus d''orange - 33cl/24','pack',1,'888554',1,'U',NULL,NULL,0.0,0.0,NULL,NULL,@COMP);
+CALL create_produit('Jus d''orange - 33cl/1','boisson',1,'888554',1,'U',NULL,1.8,5.5,10.0,NULL,NULL,@ING);
 CALL add_composant(@COMP,@ING,24,'U');
 
-CALL create_produit('Jus de pomme - 33cl/24','pack',1,'644898',1,'U',NULL,NULL,NULL,NULL,@COMP);
-CALL create_produit('Jus de pomme - 33cl/1','boisson',1,'644898',1,'U',NULL,2.1,NULL,NULL,@ING);
+CALL create_produit('Jus de pomme - 33cl/24','pack',1,'644898',1,'U',NULL,NULL,0.0,0.0,NULL,NULL,@COMP);
+CALL create_produit('Jus de pomme - 33cl/1','boisson',1,'644898',1,'U',NULL,2.1,5.5,10.0,NULL,NULL,@ING);
 CALL add_composant(@COMP,@ING,24,'U');
 
 ################################################################### LES PIZZAS #
-CALL create_produit('Pizza margarita','pizza',1,'Pmargarita',1,'U',NULL,15.3,NULL,NULL,@COMP);
+CALL create_produit('Pizza margarita','pizza',1,'Pmargarita',1,'U',NULL,15.3,10.0,10.0,NULL,NULL,@COMP);
 CALL cherche_produit_id('farine','vrac',@ID);
 CALL add_composant(@COMP,@ID,0.10,'KG');
 CALL cherche_produit_id('jambon','vrac',@ID);
@@ -170,86 +175,3 @@ SELECT "Livraison des magasins";
 CALL livre_magasin();
 SELECT * FROM stock;
 
-SELECT "Le client 8 rempli son panier";
-CALL ajoute_panier(8,get_produit_id("Pizza margarita"),1,10);
-CALL ajoute_panier(8,get_produit_id("Pizza margarita"),1,10);
-CALL ajoute_panier(8,get_produit_id("Cola - 33cl/1"),1,10);
-CALL ajoute_panier(8,get_produit_id("Eau gazeuze - 50cl/1"),1,10);
-SELECT * FROM panier WHERE utilisateur_id = 8;
-SELECT * FROM ligne_de_panier WHERE utilisateur_id = 8;
-
-SELECT "Le client 9 rempli son panier";
-CALL ajoute_panier(9,get_produit_id("Pizza margarita"),1,10);
-CALL ajoute_panier(9,get_produit_id("Cola - 33cl/1"),1,10);
-SELECT * FROM panier WHERE utilisateur_id = 9;
-SELECT * FROM ligne_de_panier WHERE utilisateur_id = 9;
-
-SELECT "Le client 8 valide son panier";
-CALL valide_commande(8,get_client_addresse_id(8),@ID);
-
-SELECT "Le panier est vide";
-SELECT * FROM panier WHERE utilisateur_id = 8;
-SELECT * FROM ligne_de_panier WHERE utilisateur_id = 8;
-
-SELECT "La commande est validée non payée et avec le status En attente";
-SELECT id,utilisateur_id, status, jour, heure, paiement_OK FROM commande WHERE utilisateur_id = 8;
-SELECT * FROM ligne_de_commande WHERE commande_id = @ID;
-SELECT reste_du(@ID);
-
-SELECT "Le client 8 effectue le paiement par CB";
-CALL add_paiement_carte_bancaire(@ID,34.20,"ERGQGQD6546",@IDPAIEMENT);
-SELECT "La commande est payée";
-SELECT id,utilisateur_id, status, jour, heure, paiement_OK FROM commande WHERE utilisateur_id = 8;
-SELECT commande_id, paiement_id, montant, type FROM liste_paiement JOIN paiement ON paiement.id = liste_paiement.paiement_id WHERE commande_id = @ID;
-SELECT reste_du(@ID);
-
-
-SELECT "Le client 9 valide son panier";
-CALL valide_commande(9, get_client_addresse_id(9),@commande);
-
-SELECT "Le panier est vide";
-SELECT * FROM panier WHERE utilisateur_id = 9;
-SELECT * FROM ligne_de_panier WHERE utilisateur_id = 9;
-
-SELECT "La commande est validée non payée et avec le status En attente";
-SELECT id,utilisateur_id, status, jour, heure, paiement_OK FROM commande WHERE utilisateur_id = 9;
-SELECT * FROM ligne_de_commande WHERE commande_id = @commande;
-SELECT reste_du(@commande);
-
-SELECT "Le client 9 effectue le paiement par Ticket Restaurant";
-CALL add_paiement_ticket_restaurant(@commande,8.20,"ERGQGQD6546",get_etablissement_id("Pass"),@IDPAIEMENT);
-SELECT id,utilisateur_id, status, jour, heure, paiement_OK FROM commande WHERE utilisateur_id = 9;
-SELECT commande_id, paiement_id, montant, type FROM liste_paiement JOIN paiement ON paiement.id = liste_paiement.paiement_id WHERE commande_id = @commande;
-SELECT reste_du(@commande);
-
-SELECT "Le client 9 effectue le reste du paiement en espèce";
-CALL add_paiement_espece(@commande,8.90,@IDPAIEMENT);
-
-SELECT "La commande est payée";
-SELECT id,utilisateur_id, status, jour, heure, paiement_OK FROM commande WHERE utilisateur_id = 9;
-SELECT commande_id, paiement_id, montant, type FROM liste_paiement JOIN paiement ON paiement.id = liste_paiement.paiement_id WHERE commande_id = @commande;
-SELECT reste_du(@commande);
-
-SELECT id,utilisateur_id, status, jour, heure, preparation_delai AS Attente, preparation_duree AS Préparation, livraison_delai AS Finalisation, livraison_duree AS Livraison,paiement_OK FROM commande;
-
-CALL pizzaiolo_prend_commande(1);
-SELECT id,utilisateur_id, status, jour, heure, preparation_delai AS Attente, preparation_duree AS Préparation, livraison_delai AS Finalisation, livraison_duree AS Livraison,paiement_OK FROM commande;
-
-CALL pizzaiolo_termine_commande(1);
-SELECT id,utilisateur_id, status, jour, heure, preparation_delai AS Attente, preparation_duree AS Préparation, livraison_delai AS Finalisation, livraison_duree AS Livraison,paiement_OK FROM commande;
-
-CALL pizzaiolo_prend_commande(2);
-SELECT id,utilisateur_id, status, jour, heure, preparation_delai AS Attente, preparation_duree AS Préparation, livraison_delai AS Finalisation, livraison_duree AS Livraison,paiement_OK FROM commande;
-
-
-CALL livreur_prend_commande(1);
-SELECT id,utilisateur_id, status, jour, heure, preparation_delai AS Attente, preparation_duree AS Préparation, livraison_delai AS Finalisation, livraison_duree AS Livraison,paiement_OK FROM commande;
-
-CALL pizzaiolo_termine_commande(2);
-SELECT id,utilisateur_id, status, jour, heure, preparation_delai AS Attente, preparation_duree AS Préparation, livraison_delai AS Finalisation, livraison_duree AS Livraison,paiement_OK FROM commande;
-
-CALL client_prend_commande(1);
-SELECT id,utilisateur_id, status, jour, heure, preparation_delai AS Attente, preparation_duree AS Préparation, livraison_delai AS Finalisation, livraison_duree AS Livraison,paiement_OK FROM commande;
-
-CALL client_prend_commande(2);
-SELECT id,utilisateur_id, status, jour, heure, preparation_delai AS Attente, preparation_duree AS Préparation, livraison_delai AS Finalisation, livraison_duree AS Livraison,paiement_OK FROM commande;

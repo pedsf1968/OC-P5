@@ -421,9 +421,9 @@ DELIMITER ;
 
 
 ######################################################## GET CLIENT ADRESSE ID #
-DROP FUNCTION IF EXISTS get_client_addresse_id;
+DROP FUNCTION IF EXISTS get_client_adresse_id;
 DELIMITER |
-CREATE FUNCTION get_client_addresse_id(
+CREATE FUNCTION get_client_adresse_id(
 	p_utilisateur_id INT(10) UNSIGNED)
 RETURNS INT(10) UNSIGNED
 DETERMINISTIC
@@ -454,6 +454,24 @@ BEGIN
 	RETURN (v_id);
 END |
 DELIMITER ;
+
+
+################################################################## EST MAGASIN #
+DROP FUNCTION IF EXISTS est_adresse_de_magasin;
+DELIMITER |
+CREATE FUNCTION est_adresse_de_magasin(
+	p_adresse_id INT(10) UNSIGNED)
+RETURNS TINYINT
+DETERMINISTIC
+BEGIN
+	DECLARE v_reponse TINYINT DEFAULT FALSE;
+
+	SELECT COUNT(*) INTO v_reponse FROM magasin INNER JOIN adresse ON magasin.adresse_id = adresse.id WHERE adresse.id = p_adresse_id;
+
+	RETURN (v_reponse);
+END |
+DELIMITER ;
+
 
 
 PREPARE liste_employe FROM
