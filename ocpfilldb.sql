@@ -32,12 +32,12 @@ CALL create_magasin('Pizza Napoli',	'0381501111','napoli@ocpizza.com',	'1',	'rue
 CALL create_magasin('Pizza Firenze','0381501654','firenze@ocpizza.com',	'45',	'rue des Bleuet',		'Dole','39000',@ID);
 CALL create_magasin('Pizza Roma',	'0381501112','roma@ocpizza.com',	'4',	'rue des Acacias',		'Vesoul','70000',@ID);
 CALL create_magasin('Pizza Torino',	'0381501113','torino@ocpizza.com',	'12',	'rue des Chataigniers',	'Belfort','90000',@ID);
-SELECT * FROM magasin,adresse WHERE adresse_id = adresse.id;
+SELECT magasin.id,nom,telephone,email,CONCAT(numero,',',voie,',',code,',',ville)  AS adresse FROM magasin JOIN adresse ON adresse_id = adresse.id;
 
 ################################################################## FOURNISSEUR #
 CALL create_fournisseur('Global Food',	'0145686811','client@globalfood.com',	'14',	'rue de Paris',	'RUNGIS','94150', @ID);
 CALL create_fournisseur('Italia Food',	'0181654654','commande@italiafood.com',	'15',	'rue de Paris',	'RUNGIS','94150', @ID);
-SELECT * FROM fournisseur,adresse WHERE adresse_id = adresse.id;
+SELECT fournisseur.id,nom,telephone,email,CONCAT(numero,',',voie,',',code,',',ville)  AS adresse FROM fournisseur JOIN adresse ON adresse_id = adresse.id;
 
 
 ################################################################################
@@ -52,7 +52,9 @@ CALL create_employe('M','ALCAZAR','Général','Général',SHA1('ALCAZAR'),1,'Piz
 CALL create_employe('M','MULLER','Docteur','Docteur',SHA1('MULLER'),1,'Comptable',@ID);
 CALL create_employe('M','LAMPION','Séraphin','Séraphin',SHA1('LAMPION'),1,'Manager',@ID);
 CALL create_employe('M','SPONSZ','Colonel','Colonel',SHA1('SPONSZ'),1,'Gestionnaire',@ID);
-
+SELECT utilisateur.id AS id, CONCAT(civilite,' ', prenom,' ', utilisateur.nom) AS nom, login, role, magasin.nom FROM employe
+INNER JOIN utilisateur ON employe.utilisateur_id = utilisateur.id 
+INNER JOIN magasin ON utilisateur.magasin_id = magasin.id;
 
 ####################################################################### CLIENT #
 CALL create_client('M','RACKHAM','Red','Red',SHA1('RACKHAM'),1,'0381565422','red.rackham@gmail.com','1', 'Rue de Naple','Besançon','25000',@ID);
@@ -61,7 +63,10 @@ CALL create_client('M','WOLF','Frank','Frank',SHA1('WOLF'),2,'0381565422','frank
 CALL create_client('M','THOMPSON','Alan','Alan',SHA1('THOMPSON'),2,'0381565422','alan.thompson@red.com','4', 'Rue de la Paix','Besançon','25000',@ID);
 CALL create_client('M','DUPON','ThierryAlan','Thierry',SHA1('DUPON'),1,'0381565422','thierry.dupon@belga.be','34', 'Rue de la Résistance','Besançon','25000',@ID);
 CALL create_client('M','DUPON','Daniel','Daniel',SHA1('DUPON'),2,'0381565422','daniel.dupon@belga.be','9', 'Rue Battant','Besançon','25000',@ID);
-
+SELECT utilisateur.id AS id, CONCAT(civilite,' ', prenom,' ', utilisateur.nom) AS nom, login,client.telephone,client.email,CONCAT(numero,',',voie,',',code,',',ville)  AS adresse, magasin.nom AS magasin FROM client 
+INNER JOIN utilisateur ON client.utilisateur_id = utilisateur.id
+INNER JOIN adresse ON client.adresse_id = adresse.id
+INNER JOIN magasin ON utilisateur.magasin_id = magasin.id;
 
 ################################################################################
 #                                                                 PRODUIT DATA #

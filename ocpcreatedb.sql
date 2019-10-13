@@ -1,6 +1,34 @@
 ################################################################################
 # CREATE DATABASE                                                     OC PIZZA #
 ################################################################################
+# CREATE TABLE erreur                                                          #
+# CREATE TABLE adresse                                                         #
+# CREATE TABLE fournisseur                                                     #
+# CREATE TABLE magasin                                                         #
+# CREATE TABLE utilisateur                                                     #
+# CREATE TABLE employe                                                         #
+# CREATE TABLE client                                                          #
+# CREATE TABLE produit                                                         #
+# CREATE TABLE                                                                 #
+# CREATE TABLE preparation                                                     #
+# CREATE TABLE composition                                                     #
+# CREATE TABLE composant                                                       #
+# CREATE TABLE stock                                                           #
+# CREATE TABLE panier                                                          #
+# CREATE TABLE ligne_de_panier                                                 #
+# CREATE TABLE commande                                                        #
+# CREATE TABLE ligne_de_commande                                               #
+# CREATE TABLE etablissement                                                   #
+# CREATE TABLE paiement                                                        #
+# CREATE TABLE ticket_restaurant                                               #
+# CREATE TABLE carte_bancaire                                                  #
+# CREATE TABLE cheque                                                          #
+# CREATE TABLE liste_paiement                                                  #
+#                                                                              #
+# CREATE TRIGGER before_insert_adresse                                         #
+# CREATE TRIGGER before_update_adresse                                         #
+################################################################################
+
 CREATE DATABASE oc_pizza CHARACTER SET 'utf8';
 
 USE oc_pizza;
@@ -229,7 +257,7 @@ DESCRIBE client;
 #                                                                      PRODUIT #
 ################################################################################
 
-###################################################################### PRODUIT #
+###################################################################### PRODUIT # 
 DROP TABLE IF EXISTS produit;
 CREATE TABLE produit (
                 id INT UNSIGNED AUTO_INCREMENT NOT NULL,
@@ -289,7 +317,7 @@ ON UPDATE CASCADE;
 DESCRIBE composition;
 
 
-#################################################################### COMPOSANT #
+#################################################################### COMPOSANT # 
 DROP TABLE IF EXISTS composant;
 CREATE TABLE composant (
                 produit_id INT UNSIGNED NOT NULL,
@@ -374,9 +402,9 @@ CREATE TABLE ligne_de_panier (
                 PRIMARY KEY (utilisateur_id, produit_id)
 )ENGINE=InnoDB;
 
-ALTER TABLE ligne_de_panier ADD CONSTRAINT panier_ligne_de_panier_fk
+ALTER TABLE ligne_de_panier ADD CONSTRAINT utilisateur_ligne_de_panier_fk
 FOREIGN KEY (utilisateur_id)
-REFERENCES panier (utilisateur_id)
+REFERENCES  utilisateur (id)
 ON DELETE CASCADE
 ON UPDATE CASCADE;
 
@@ -389,7 +417,7 @@ ON UPDATE NO ACTION;
 DESCRIBE ligne_de_panier;
 
 
-##################################################################### COMMANDE #
+##################################################################### COMMANDE # 
 DROP TABLE IF EXISTS commande;
 CREATE TABLE commande (
                 id INT UNSIGNED AUTO_INCREMENT NOT NULL,
@@ -488,7 +516,7 @@ ON UPDATE CASCADE;
 DESCRIBE ticket_restaurant;
 
 
-############################################################### CARTE_BANCAIRE #
+############################################################### CARTE_BANCAIRE # 
 DROP TABLE IF EXISTS carte_bancaire;
 CREATE TABLE carte_bancaire (
                 paiement_id INT UNSIGNED NOT NULL,
@@ -551,3 +579,6 @@ DESCRIBE liste_paiement;
 
 SHOW TABLES;
 
+source ocpcreateprocedure.sql;
+source ocpcreaterequete.sql;
+source ocpfilldb.sql;

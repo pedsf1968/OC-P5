@@ -476,19 +476,37 @@ DELIMITER ;
 ################################################################################
 
 ######################################################## UPDATE MONTANT PANIER #
-DROP PROCEDURE IF EXISTS update_montant_panier;
+DROP PROCEDURE IF EXISTS update_panier;
 DELIMITER |
-CREATE PROCEDURE update_montant_panier(
+CREATE PROCEDURE update_panier(
    IN p_utilisateur_id INT(10),
-   IN p_livraison TINYINT)
+   IN p_livraison TINYINT UNSIGNED)
 BEGIN
-   DECLARE v_montant_old DECIMAL(5,2) DEFAULT (0.0);
+   DECLARE v_montant DECIMAL(5,2) DEFAULT (0.0);
+   DECLARE v_livraison_modifie TINYINT DEFAULT FALSE;
 
-   SELECT montant INTO v_montant_old FROM panier WHERE utilisateur_id = p_utilisateur_id;
+   -- on cherche si on a modifier le type de livraison
+   SELECT (livraison <> p_livraison) INTO v_livraison_modifie FROM panier WHERE utilisateur_id = p_utilisateur_id;
 
-   INSERT INTO  panier (utilisateur_id,jour,heure,montant)
-   VALUES ( p_utilisateur_id,CURRENT_DATE(), CURRENT_TIME(), p_montant + v_montant_old)
-   ON DUPLICATE KEY UPDATE jour = CURRENT_DATE(), heure = CURRENT_TIME(), montant = p_montant + v_montant_old;
+   IF v_livraison_modifie THEN
+      IF p_livraison THEN
+         -- livraison
+         UPDATE ligne_de_panier
+         SET taux_tva = (SELECT tva_livre FROM produit WHERE produit.id = ligne_de_panier.produit_id)  
+         WHERE ligne_de_panier.utilisateur_id = p_utilisateur_id;
+      ELSE
+         -- take away
+         UPDATE ligne_de_panier
+         SET taux_tva = (SELECT tva_emporte FROM produit WHERE produit.id = ligne_de_panier.produit_id)  
+         WHERE ligne_de_panier.utilisateur_id = p_utilisateur_id;
+      END IF;
+   END IF;
+
+   SELECT SUM(quantite*prix_unitaire_ht*(1+taux_tva/100)) INTO v_montant FROM ligne_de_panier WHERE utilisateur_id = p_utilisateur_id;
+
+   INSERT INTO  panier (utilisateur_id,jour,heure,montant_ttc,livraison)
+   VALUES ( p_utilisateur_id,CURRENT_DATE(), CURRENT_TIME(), v_montant, p_livraison)
+   ON DUPLICATE KEY UPDATE jour = CURRENT_DATE(), heure = CURRENT_TIME(), montant_ttc = v_montant, livraison = p_livraison;
 END |
 DELIMITER ;
 
@@ -501,11 +519,14 @@ CREATE PROCEDURE ajoute_panier(
    IN p_utilisateur_id INT(10),
    IN p_produit_id INT(10),
    IN p_quantite DECIMAL(2,0),
-   IN p_taux_tva DECIMAL(3,1))
+   IN p_livraison TINYINT UNSIGNED)
 BEGIN
    DECLARE v_quantite_old DECIMAL(2,0) DEFAULT (0.0);
    DECLARE v_prix_unitaire_ht DECIMAL(5,2) DEFAULT (0.0);
+   DECLARE v_taux_tva DECIMAL(5,2) DEFAULT (0.0);
+   
 
+   -- on récupère l'ancienne quantité
    SELECT quantite INTO v_quantite_old FROM ligne_de_panier 
    WHERE utilisateur_id = p_utilisateur_id AND produit_id = p_produit_id;
 
@@ -513,16 +534,23 @@ BEGIN
       SET v_quantite_old = 0;
    END IF;
 
-   SELECT prix_vente_ht INTO v_prix_unitaire_ht FROM produit WHERE id = p_produit_id;
+   IF p_livraison THEN
+      -- livraison à domicile
+      SELECT prix_vente_ht, tva_livre INTO v_prix_unitaire_ht,v_taux_tva FROM produit WHERE id = p_produit_id;
+   ELSE
+      -- vente à emporter
+      SELECT prix_vente_ht, tva_emporte INTO v_prix_unitaire_ht,v_taux_tva FROM produit WHERE id = p_produit_id;
+   END IF;
 
-   CALL update_montant_panier(p_utilisateur_id,v_prix_unitaire_ht*p_quantite);
-
+   
    INSERT INTO ligne_de_panier (utilisateur_id,produit_id,quantite,prix_unitaire_ht,taux_tva)
-   VALUES (p_utilisateur_id,p_produit_id,p_quantite+v_quantite_old,v_prix_unitaire_ht,p_taux_tva)
-   ON DUPLICATE KEY UPDATE quantite = p_quantite + v_quantite_old, prix_unitaire_ht = v_prix_unitaire_ht, taux_tva = p_taux_tva;
+   VALUES (p_utilisateur_id,p_produit_id,p_quantite+v_quantite_old,v_prix_unitaire_ht,v_taux_tva)
+   ON DUPLICATE KEY UPDATE quantite = p_quantite + v_quantite_old, prix_unitaire_ht = v_prix_unitaire_ht, taux_tva = v_taux_tva;
 
+  CALL update_panier(p_utilisateur_id,p_livraison);
 END |
 DELIMITER ;
+
 
 
 ################################################################ ENLEVE PANIER #
@@ -531,24 +559,38 @@ DELIMITER |
 CREATE PROCEDURE enleve_panier(
    IN p_utilisateur_id INT(10),
    IN p_produit_id INT(10),
-   IN p_quantite DECIMAL(2,0))
+   IN p_quantite DECIMAL(2,0),
+   IN p_livraison TINYINT UNSIGNED)
 BEGIN
    DECLARE v_quantite_old DECIMAL(2,0) DEFAULT (0.0);
    DECLARE v_prix_unitaire_ht DECIMAL(5,2) DEFAULT (0.0);
-   
-   SELECT quantite, prix_unitaire_ht INTO v_quantite_old,v_prix_unitaire_ht FROM ligne_de_panier 
+   DECLARE v_taux_tva DECIMAL(5,2) DEFAULT (0.0);
+      
+   -- on récupère l'ancienne quantité
+   SELECT quantite INTO v_quantite_old FROM ligne_de_panier 
    WHERE utilisateur_id = p_utilisateur_id AND produit_id = p_produit_id;
 
-   CALL update_montant_panier(p_utilisateur_id,-v_prix_unitaire_ht*p_quantite);
-
-   SET p_quantite = v_quantite_old - p_quantite;
-
-   IF p_quantite < 1 THEN 
-      DELETE FROM ligne_de_panier WHERE utilisateur_id = p_utilisateur_id AND produit_id = p_produit_id;
+   -- on sélectionne le prix et la tva suivant la livraison
+   IF p_livraison THEN
+      -- livraison à domicile
+      SELECT prix_vente_ht, tva_livre INTO v_prix_unitaire_ht,v_taux_tva FROM produit WHERE id = p_produit_id;
    ELSE
-      UPDATE ligne_de_panier SET quantite = p_quantite WHERE utilisateur_id = p_utilisateur_id AND produit_id = p_produit_id;
+      -- vente à emporter
+      SELECT prix_vente_ht, tva_emporte INTO v_prix_unitaire_ht,v_taux_tva FROM produit WHERE id = p_produit_id;
    END IF;
-   
+
+   -- on diminue la quantité
+   IF v_quantite_old IS NULL  OR v_quantite_old <= p_quantite THEN
+      DELETE FROM ligne_de_panier WHERE utilisateur_id = p_utilisateur_id AND produit_id = p_produit_id;
+   ELSE 
+      INSERT INTO ligne_de_panier (utilisateur_id,produit_id,quantite,prix_unitaire_ht,taux_tva)
+      VALUES (p_utilisateur_id,p_produit_id,v_quantite_old - p_quantite,v_prix_unitaire_ht,v_taux_tva)
+      ON DUPLICATE KEY UPDATE quantite = v_quantite_old - p_quantite, prix_unitaire_ht = v_prix_unitaire_ht, taux_tva = v_taux_tva;
+   END IF;
+
+   -- on met à jour le panier   
+   CALL update_panier(p_utilisateur_id,p_livraison);
+
 END |
 DELIMITER ;
 
@@ -615,12 +657,13 @@ DROP PROCEDURE IF EXISTS valide_commande;
 DELIMITER |
 CREATE PROCEDURE valide_commande(
    IN p_utilisateur_id INT(10) UNSIGNED,
-   IN p_adresse_id INT(10) UNSIGNED,
    OUT p_commande_id INT(10) UNSIGNED)
 BEGIN
    DECLARE v_jour DATE DEFAULT CURRENT_DATE();
    DECLARE v_heure TIME DEFAULT CURRENT_TIME();
-   DECLARE v_montant DECIMAL(5,2) DEFAULT (0.0);
+   DECLARE v_montant_ttc DECIMAL(5,2) DEFAULT (0.0);
+   DECLARE v_adresse_id INT(10) UNSIGNED;
+   DECLARE v_livraison TINYINT UNSIGNED DEFAULT TRUE;
    DECLARE v_magasin_id INT(10) UNSIGNED;
    DECLARE v_produit_id INT(10) UNSIGNED;
    DECLARE v_quantite DECIMAL(5,2) DEFAULT (0.0);
@@ -653,24 +696,31 @@ BEGIN
 
    CLOSE curseur_verification;
 
-   -- on récupère le montant du panier
-   SELECT montant INTO v_montant from panier WHERE utilisateur_id = p_utilisateur_id;
+   -- on récupère le montant du panier et savoir si c'est une livraison
+   SELECT montant_ttc,livraison INTO v_montant_ttc,v_livraison from panier WHERE utilisateur_id = p_utilisateur_id;
 
-   -- on créée une nouvelle commande avec un montant à 0
-   INSERT INTO commande (utilisateur_id, adresse_id, statut, jour, heure, montant_TTC)
-   VALUES (p_utilisateur_id, p_adresse_id, 'En attente', v_jour, v_heure, 0.0);
+   IF v_livraison THEN
+      -- on prend l'adresse du client
+      SELECT adresse.id INTO v_adresse_id FROM adresse
+      JOIN client ON adresse.id = client.adresse_id
+      WHERE client.utilisateur_id = p_utilisateur_id;
+   ELSE
+      -- on prend l'adresse du magasin
+      SELECT adresse.id INTO v_adresse_id FROM adresse
+      JOIN magasin ON adresse.id = magasin.adresse_id
+      WHERE magasin.id = v_magasin_id;
+   END IF;
+
+   -- on créée une nouvelle commande a
+   INSERT INTO commande (utilisateur_id, adresse_id, statut, jour, heure, montant_ttc)
+   VALUES (p_utilisateur_id, v_adresse_id, 'En attente', v_jour, v_heure, v_montant_ttc);
 
    -- on récupère l'identifiant de la commande
    SELECT DISTINCT id INTO p_commande_id FROM commande
-   WHERE utilisateur_id = p_utilisateur_id 
-   AND adresse_id = p_adresse_id 
-   AND statut = 'En attente' 
-   AND jour = v_jour
-   AND heure = v_heure;
+   WHERE utilisateur_id = p_utilisateur_id AND adresse_id = v_adresse_id AND statut = 'En attente' AND jour = v_jour AND heure = v_heure;
 
    -- diminution des stocks 
    SET done = FALSE;
-
   
    OPEN curseur_modification;
    loop_modification: LOOP 
@@ -687,22 +737,11 @@ BEGIN
    CLOSE curseur_modification;
 
    -- on copie les lignes de panier dans les lignes de commande
-   IF est_addresse_de_magasin(p_adresse_id) THEN
-      -- on récupère la TVA des produits à emporter
-      INSERT INTO ligne_de_commande (commande_id,produit_id,quantite,prix_unitaire_ht, taux_tva)
-      SELECT p_commande_id,produit_id,quantite,prix_unitaire_ht, tva_emporte FROM ligne_de_panier 
-      JOIN produit ON ligne_de_panier.produit_id = produit.id WHERE utilisateur_id = p_utilisateur_id;
-   ELSE
-      -- on récupère la TVA des produits à livrer
-      INSERT INTO ligne_de_commande (commande_id,produit_id,quantite,prix_unitaire_ht, taux_tva)
-      SELECT p_commande_id,produit_id,quantite,prix_unitaire_ht, tva_livre FROM ligne_de_panier 
-      JOIN produit ON ligne_de_panier.produit_id = produit.id WHERE utilisateur_id = p_utilisateur_id;
-   END IF;
-
-   -- on calcule et initialise le montant de la commande
-   UPDATE commande 
-   SET montant_TTC = (SELECT SUM(prix_unitaire_ht*quantite*(1+taux_tva/100))) WHERE id = p_commande_id;
-
+   INSERT INTO ligne_de_commande (commande_id,produit_id,quantite,prix_unitaire_ht, taux_tva)
+   SELECT p_commande_id,produit_id,quantite,prix_unitaire_ht, taux_tva FROM ligne_de_panier 
+   WHERE utilisateur_id = p_utilisateur_id;
+   
+   
    -- on vide le panier
    DELETE FROM ligne_de_panier WHERE utilisateur_id = p_utilisateur_id;
    DELETE FROM panier WHERE utilisateur_id = p_utilisateur_id;
@@ -725,7 +764,7 @@ BEGIN
    SELECT statut, jour, heure INTO v_statut,v_start_date,v_start_time FROM commande WHERE id = p_commande_id;
 
    -- le pizzaiolo ne peut prendre que les statut en attente
-   IF statut = 'En attente' THEN
+   IF v_statut = 'En attente' THEN
       SET v_preparation_delai = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time));
       UPDATE commande SET statut = 'En préparation', preparation_delai = v_preparation_delai WHERE id = p_commande_id;
    ELSE
@@ -749,7 +788,7 @@ BEGIN
    SELECT statut, jour, heure, preparation_delai INTO v_statut, v_start_date,v_start_time,v_preparation_delai FROM commande WHERE id = p_commande_id;
 
    -- le pizzaiolo ne peut terminer une commande qui n'est pas en préparation
-   IF statut = 'En préparation' THEN
+   IF v_statut = 'En préparation' THEN
       SET v_preparation_duree = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time)) - v_preparation_delai;   
       UPDATE commande SET statut = 'Préparée', preparation_duree = v_preparation_duree WHERE id = p_commande_id;
    ELSE
@@ -776,7 +815,7 @@ BEGIN
    INTO v_statut,v_start_date,v_start_time, v_preparation_delai, v_preparation_duree 
    FROM commande WHERE id = p_commande_id;
 
-   IF statut = 'Préparée' THEN
+   IF v_statut = 'Préparée' THEN
       SET v_livraison_delai = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time)) - v_preparation_delai - v_preparation_duree;
       UPDATE commande SET statut = 'En livraison', livraison_delai = v_livraison_delai WHERE id = p_commande_id;
    ELSE 
@@ -804,14 +843,14 @@ BEGIN
    FROM commande WHERE id = p_commande_id;
 
    -- la commande doit être préparée pour pouvoir passer en status livrée
-   IF statut <> 'Préparée' OR statut <> 'En livraison' THEN
+   IF v_statut <> 'Préparée' AND v_statut <> 'En livraison' THEN
       INSERT INTO erreur (message) VALUES ('ERREUR : la commande n''est pas préparée!');   
    END IF;
 
    -- un client peut prendre la commande directement en magasin donc elle ne passe pas par la livraison
    IF v_livraison_delai IS NULL THEN
       SET v_livraison_duree = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time)) - v_preparation_delai - v_preparation_duree;
-      UPDATE commande SET statut = 'Livrée',  livraison_delai = v_livraison_duree, livraison_duree = v_livraison_duree WHERE id = p_commande_id;      
+      UPDATE commande SET statut = 'Livrée',  livraison_delai = 0, livraison_duree = v_livraison_duree WHERE id = p_commande_id;      
    ELSE
       SET v_livraison_duree = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time)) - v_preparation_delai - v_preparation_duree - v_livraison_delai;
       UPDATE commande SET statut = 'Livrée',  livraison_duree = v_preparation_duree WHERE id = p_commande_id;
