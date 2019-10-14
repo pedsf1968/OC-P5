@@ -52,9 +52,8 @@ CALL create_employe('M','ALCAZAR','Général','Général',SHA1('ALCAZAR'),1,'Piz
 CALL create_employe('M','MULLER','Docteur','Docteur',SHA1('MULLER'),1,'Comptable',@ID);
 CALL create_employe('M','LAMPION','Séraphin','Séraphin',SHA1('LAMPION'),1,'Manager',@ID);
 CALL create_employe('M','SPONSZ','Colonel','Colonel',SHA1('SPONSZ'),1,'Gestionnaire',@ID);
-SELECT utilisateur.id AS id, CONCAT(civilite,' ', prenom,' ', utilisateur.nom) AS nom, login, role, magasin.nom FROM employe
-INNER JOIN utilisateur ON employe.utilisateur_id = utilisateur.id 
-INNER JOIN magasin ON utilisateur.magasin_id = magasin.id;
+
+EXECUTE l_employe;
 
 ####################################################################### CLIENT #
 CALL create_client('M','RACKHAM','Red','Red',SHA1('RACKHAM'),1,'0381565422','red.rackham@gmail.com','1', 'Rue de Naple','Besançon','25000',@ID);
@@ -63,10 +62,9 @@ CALL create_client('M','WOLF','Frank','Frank',SHA1('WOLF'),2,'0381565422','frank
 CALL create_client('M','THOMPSON','Alan','Alan',SHA1('THOMPSON'),2,'0381565422','alan.thompson@red.com','4', 'Rue de la Paix','Besançon','25000',@ID);
 CALL create_client('M','DUPON','ThierryAlan','Thierry',SHA1('DUPON'),1,'0381565422','thierry.dupon@belga.be','34', 'Rue de la Résistance','Besançon','25000',@ID);
 CALL create_client('M','DUPON','Daniel','Daniel',SHA1('DUPON'),2,'0381565422','daniel.dupon@belga.be','9', 'Rue Battant','Besançon','25000',@ID);
-SELECT utilisateur.id AS id, CONCAT(civilite,' ', prenom,' ', utilisateur.nom) AS nom, login,client.telephone,client.email,CONCAT(numero,',',voie,',',code,',',ville)  AS adresse, magasin.nom AS magasin FROM client 
-INNER JOIN utilisateur ON client.utilisateur_id = utilisateur.id
-INNER JOIN adresse ON client.adresse_id = adresse.id
-INNER JOIN magasin ON utilisateur.magasin_id = magasin.id;
+
+EXECUTE l_client;
+
 
 ################################################################################
 #                                                                 PRODUIT DATA #
@@ -79,10 +77,12 @@ INNER JOIN magasin ON utilisateur.magasin_id = magasin.id;
 #                 OUT p_id INT(10))                                            #
 ################################################################################
 
+######################################################################## SECHE #
 CALL create_produit('farine de blé T55 - 25Kg','ingrédient',1,'fkjh6546',25.00,'KG',33.40,NULL,0.0,0.0,'farine',NULL,@COMP);
 CALL create_produit('farine de blé T55 - Vrac','vrac',1,'fkjh6546',1.0,'KG',NULL,NULL,0.0,0.0,'farine',NULL,@ING);
 CALL add_composant(@COMP,@ING,25.0,'KG');
 
+###################################################################### PRIMEUR #
 CALL create_produit('Champignon pied coupé moyen catégorie 1 - 3Kg','ingrédient',1,'31347',3.00,'KG',14.5,NULL,0.0,0.0,'champignon',NULL,@COMP);
 CALL create_produit('Champignon pied coupé moyen catégorie 1 - Vrac','vrac',1,'31347',1.00,'KG',NULL,NULL,0.0,0.0,'champignon',NULL,@ING);
 CALL add_composant(@COMP,@ING,3.0,'KG');
@@ -103,6 +103,7 @@ CALL create_produit('Oignon charcutier calibre 70/100 catégorie 1 - 10Kg','ingr
 CALL create_produit('Oignon charcutier calibre 70/100 catégorie 1 - Vrac','vrac',1,'702815',1.00,'KG',NULL,NULL,0.0,0.0,'oignon',NULL,@ING);
 CALL add_composant(@COMP,@ING,10.0,'KG');
 
+#################################################################### BOUCHERIE #
 CALL create_produit('Bacon standard sous vide fumé - 1.5Kg','ingrédient',2,'236179',1.50,'KG',55.00,NULL,0.0,0.0,'porc',NULL,@COMP);
 CALL create_produit('Bacon standard sous vide fumé - Vrac','vrac',2,'236179',1.0,'KG',NULL,NULL,0.0,0.0,'porc',NULL,@ING);
 CALL add_composant(@COMP,@ING,1.5,'KG');
@@ -111,14 +112,21 @@ CALL create_produit('Jambon de Vendée à l''ancienne - 3Kg','ingrédient',2,'23
 CALL create_produit('Jambon de Vendée à l''ancienne - Vrac','vrac',2,'235440',1.0,'KG',NULL,NULL,0.0,0.0,'porc',NULL,@ING);
 CALL add_composant(@COMP,@ING,3.0,'KG');
 
+CALL create_produit('Pepperoni - 1.8Kg','ingrédient',2,'157623',1.8,'KG',35.00,NULL,0.0,0.0,'porc',NULL,@COMP);
+CALL create_produit('Pepperoni - Vrac','vrac',2,'157623',1.0,'KG',NULL,NULL,0.0,0.0,'porc',NULL,@ING);
+CALL add_composant(@COMP,@ING,1.8,'KG');
+
 CALL create_produit('Chorizo fort - 1.8Kg','ingrédient',2,'157623',1.8,'KG',35.00,NULL,0.0,0.0,'porc',NULL,@COMP);
 CALL create_produit('Chorizo fort - Vrac','vrac',2,'157623',1.0,'KG',NULL,NULL,0.0,0.0,'porc',NULL,@ING);
 CALL add_composant(@COMP,@ING,1.8,'KG');
 
+######################################################################## MAREE #
 CALL create_produit('Saumon sauvage filet sous vide - 5Kg','ingrédient',1,'706424',5.0,'KG',111.10,NULL,0.0,0.0,'poisson',NULL,@COMP);
 CALL create_produit('Saumon sauvage filet sous vide - Vrac','vrac',1,'706424',1.0,'KG',NULL,NULL,0.0,0.0,'poisson',NULL,@ING);
 CALL add_composant(@COMP,@ING,5.0,'KG');
 
+
+##################################################################### CREMERIE #
 CALL create_produit('Oeuf calibre gros fermier - 30U','ingrédient',1,'159123',30,'U',10.1,NULL,0.0,0.0,'oeuf',NULL,@COMP);
 CALL create_produit('Oeuf calibre gros fermier - Vrac','vrac',1,'159123',1,'U',NULL,NULL,0.0,0.0,'oeuf',NULL,@ING);
 CALL add_composant(@COMP,@ING,30,'U');
@@ -138,6 +146,18 @@ CALL add_composant(@COMP,@ING,6.0,'L');
 CALL create_produit('Fromage rapé - 5Kg','ingrédient',2,'654654',5.00,'KG',50.00,NULL,0.0,0.0,'fromage',NULL,@COMP);
 CALL create_produit('Fromage rapé - Vrac','vrac',2,'654654',1.0,'KG',NULL,NULL,0.0,0.0,'fromage',NULL,@ING);
 CALL add_composant(@COMP,@ING,5.0,'KG');
+
+CALL create_produit('Mozzarella - 5Kg','ingrédient',2,'78989',5.00,'KG',80.00,NULL,0.0,0.0,'fromage',NULL,@COMP);
+CALL create_produit('Mozzarella - Vrac','vrac',2,'78989',1.0,'KG',NULL,NULL,0.0,0.0,'fromage',NULL,@ING);
+CALL add_composant(@COMP,@ING,5.0,'KG');
+
+CALL create_produit('Chèvre - 2Kg','ingrédient',2,'78989',2.00,'KG',40.00,NULL,0.0,0.0,'fromage',NULL,@COMP);
+CALL create_produit('Chèvre - Vrac','vrac',2,'78989',1.0,'KG',NULL,NULL,0.0,0.0,'fromage',NULL,@ING);
+CALL add_composant(@COMP,@ING,2.0,'KG');
+
+CALL create_produit('Fourme d''Amber AOP - 2Kg','ingrédient',2,'78989',2.00,'KG',40.00,NULL,0.0,0.0,'fromage',NULL,@COMP);
+CALL create_produit('Fourme d''Amber AOP - Vrac','vrac',2,'78989',1.0,'KG',NULL,NULL,0.0,0.0,'fromage',NULL,@ING);
+CALL add_composant(@COMP,@ING,2.0,'KG');
 
 ################################################################# LES BOISSONS #
 CALL create_produit('Eau plate - 50cl/24','pack',1,'65465',24,'U',NULL,NULL,0.0,0.0,'eau',NULL,@COMP);
@@ -162,14 +182,30 @@ CALL add_composant(@COMP,@ING,24,'U');
 
 ################################################################### LES PIZZAS #
 CALL create_produit('Pizza margarita','pizza',1,'Pmargarita',1,'U',NULL,15.3,10.0,10.0,NULL,NULL,@COMP);
-CALL cherche_produit_id('farine','vrac',@ID);
-CALL add_composant(@COMP,@ID,0.10,'KG');
-CALL cherche_produit_id('jambon','vrac',@ID);
-CALL add_composant(@COMP,@ID,0.10,'KG');
-CALL cherche_produit_id('Sauce tomate','vrac',@ID);
-CALL add_composant(@COMP,@ID,0.05,'L');
-CALL cherche_produit_id('Fromage rapé','vrac',@ID);
-CALL add_composant(@COMP,@ID,0.10,'KG');
+CALL add_composant(@COMP,get_vrac_id('farine'),0.10,'KG');
+CALL add_composant(@COMP,get_vrac_id('jambon'),0.10,'KG');
+CALL add_composant(@COMP,get_vrac_id('Sauce tomate'),0.05,'L');
+CALL add_composant(@COMP,get_vrac_id('Fromage rapé'),0.10,'KG');
+
+CALL create_produit('Pizza 4 fromages','pizza',1,'P4fromages',1,'U',NULL,13.3,10.0,10.0,NULL,NULL,@COMP);
+CALL add_composant(@COMP,get_vrav_id('farine'),0.10,'KG');
+CALL add_composant(@COMP,get_vrav_id('Mozzarella'),0.10,'KG');
+CALL add_composant(@COMP,get_vrav_id('Fromage rapé'),0.10,'KG');
+CALL add_composant(@COMP,get_vrav_id('Fourme'),0.10,'KG');
+CALL add_composant(@COMP,get_vrav_id('Chevre'),0.10,'KG');
+CALL add_composant(@COMP,get_vrav_id('Sauce tomate'),0.05,'L');
+
+CALL create_produit('Pizza extravaganzza','pizza',1,'Pextravag',1,'U',NULL,16.5,10.0,10.0,NULL,NULL,@COMP);
+CALL add_composant(@COMP,get_vrav_id('farine'),0.10,'KG');
+CALL add_composant(@COMP,get_vrav_id('Champignon'),0.05,'KG');
+CALL add_composant(@COMP,get_vrav_id('Poivron'),0.05,'KG');
+CALL add_composant(@COMP,get_vrav_id('Mozzarella'),0.10,'KG');
+CALL add_composant(@COMP,get_vrav_id('Fromage rapé'),0.10,'KG');
+CALL add_composant(@COMP,get_vrav_id('Pepperoni'),0.10,'KG');
+CALL add_composant(@COMP,get_vrav_id('Jambon'),0.10,'KG');
+CALL add_composant(@COMP,get_vrav_id('Bacon'),0.10,'KG');
+CALL add_composant(@COMP,get_vrav_id('Sauce tomate'),0.05,'L');
+
 
 SELECT * FROM produit;
 SELECT * FROM composition;
