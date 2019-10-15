@@ -188,23 +188,23 @@ CALL add_composant(@COMP,get_vrac_id('Sauce tomate'),0.05,'L');
 CALL add_composant(@COMP,get_vrac_id('Fromage rapé'),0.10,'KG');
 
 CALL create_produit('Pizza 4 fromages','pizza',1,'P4fromages',1,'U',NULL,13.3,10.0,10.0,NULL,NULL,@COMP);
-CALL add_composant(@COMP,get_vrav_id('farine'),0.10,'KG');
-CALL add_composant(@COMP,get_vrav_id('Mozzarella'),0.10,'KG');
-CALL add_composant(@COMP,get_vrav_id('Fromage rapé'),0.10,'KG');
-CALL add_composant(@COMP,get_vrav_id('Fourme'),0.10,'KG');
-CALL add_composant(@COMP,get_vrav_id('Chevre'),0.10,'KG');
-CALL add_composant(@COMP,get_vrav_id('Sauce tomate'),0.05,'L');
+CALL add_composant(@COMP,get_vrac_id('farine'),0.10,'KG');
+CALL add_composant(@COMP,get_vrac_id('Mozzarella'),0.10,'KG');
+CALL add_composant(@COMP,get_vrac_id('Fromage rapé'),0.10,'KG');
+CALL add_composant(@COMP,get_vrac_id('Fourme'),0.10,'KG');
+CALL add_composant(@COMP,get_vrac_id('Chevre'),0.10,'KG');
+CALL add_composant(@COMP,get_vrac_id('Sauce tomate'),0.05,'L');
 
 CALL create_produit('Pizza extravaganzza','pizza',1,'Pextravag',1,'U',NULL,16.5,10.0,10.0,NULL,NULL,@COMP);
-CALL add_composant(@COMP,get_vrav_id('farine'),0.10,'KG');
-CALL add_composant(@COMP,get_vrav_id('Champignon'),0.05,'KG');
-CALL add_composant(@COMP,get_vrav_id('Poivron'),0.05,'KG');
-CALL add_composant(@COMP,get_vrav_id('Mozzarella'),0.10,'KG');
-CALL add_composant(@COMP,get_vrav_id('Fromage rapé'),0.10,'KG');
-CALL add_composant(@COMP,get_vrav_id('Pepperoni'),0.10,'KG');
-CALL add_composant(@COMP,get_vrav_id('Jambon'),0.10,'KG');
-CALL add_composant(@COMP,get_vrav_id('Bacon'),0.10,'KG');
-CALL add_composant(@COMP,get_vrav_id('Sauce tomate'),0.05,'L');
+CALL add_composant(@COMP,get_vrac_id('farine'),0.10,'KG');
+CALL add_composant(@COMP,get_vrac_id('Champignon'),0.05,'KG');
+CALL add_composant(@COMP,get_vrac_id('Poivron'),0.05,'KG');
+CALL add_composant(@COMP,get_vrac_id('Mozzarella'),0.10,'KG');
+CALL add_composant(@COMP,get_vrac_id('Fromage rapé'),0.10,'KG');
+CALL add_composant(@COMP,get_vrac_id('Pepperoni'),0.10,'KG');
+CALL add_composant(@COMP,get_vrac_id('Jambon'),0.10,'KG');
+CALL add_composant(@COMP,get_vrac_id('Bacon'),0.10,'KG');
+CALL add_composant(@COMP,get_vrac_id('Sauce tomate'),0.05,'L');
 
 
 SELECT * FROM produit;

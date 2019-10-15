@@ -3,28 +3,30 @@
 ################################################################################
 
 SELECT "Le client 8 rempli son panier avec une livraison";
-CALL ajoute_panier(8,get_produit_id("Pizza margarita"),1,TRUE);
-CALL ajoute_panier(8,get_produit_id("Pizza margarita"),1,TRUE);
-CALL ajoute_panier(8,get_produit_id("Cola - 33cl/1"),1,TRUE);
-CALL ajoute_panier(8,get_produit_id("Eau gazeuze - 50cl/1"),1,TRUE);
+CALL ajoute_panier(8,get_produit_id("Pizza margarita","pizza"),1,TRUE);
+CALL ajoute_panier(8,get_produit_id("Pizza margarita","pizza"),1,TRUE);
+CALL ajoute_panier(8,get_produit_id("Cola - 33cl/1","boisson"),1,TRUE);
+CALL ajoute_panier(8,get_produit_id("Eau gazeuze - 50cl/1","boisson"),1,TRUE);
 SELECT * FROM panier WHERE utilisateur_id = 8;
 SELECT * FROM ligne_de_panier WHERE utilisateur_id = 8;
 
-SELECT "Le client 9 rempli son panier en take away";
-CALL ajoute_panier(9,get_produit_id("Pizza margarita"),1,FALSE);
-CALL ajoute_panier(9,get_produit_id("Cola - 33cl/1"),1,FALSE);
-SELECT * FROM panier WHERE utilisateur_id = 9;
-SELECT * FROM ligne_de_panier WHERE utilisateur_id = 9;
-
 SELECT "Le client 8 enleve un produit et passe en take away";
-CALL enleve_panier(8,get_produit_id("margarita"),1,FALSE);
+CALL enleve_panier(8,get_produit_id("margarita","pizza"),1,FALSE);
 SELECT * FROM panier ;
 SELECT * FROM ligne_de_panier;
 
 SELECT "Le client 8 ajoute un produit et repasse en livraison";
-CALL ajoute_panier(8,get_produit_id("margarita"),1,TRUE);
+CALL ajoute_panier(8,get_produit_id("4 fromages","pizza"),1,TRUE);
 SELECT * FROM panier ;
 SELECT * FROM ligne_de_panier;
+
+
+SELECT "Le client 9 rempli son panier en take away";
+CALL ajoute_panier(9,get_produit_id("Pizza margarita","pizza"),1,FALSE);
+CALL ajoute_panier(9,get_produit_id("Cola - 33cl/1","boisson"),1,FALSE);
+SELECT * FROM panier;
+SELECT * FROM ligne_de_panier ;
+
 
 SELECT "Le client 8 valide son panier";
 CALL valide_commande(8,@ID);
@@ -39,12 +41,11 @@ SELECT commande_id AS IDC, produit_id AS IDP, quantite AS Quantité, prix_unitai
 SELECT reste_du(@ID);
 
 SELECT "Le client 8 effectue le paiement par CB";
-CALL add_paiement_carte_bancaire(@ID,37.62,"ERGQGQD6546",@IDPAIEMENT);
+CALL add_paiement_carte_bancaire(@ID,35.42,"ERGQGQD6546",@IDPAIEMENT);
 SELECT "La commande est payée";
 SELECT id,utilisateur_id, statut, jour, heure, paiement_OK FROM commande WHERE utilisateur_id = 8;
 SELECT commande_id, paiement_id, montant, type FROM liste_paiement JOIN paiement ON paiement.id = liste_paiement.paiement_id WHERE commande_id = @ID;
 SELECT reste_du(@ID);
-
 
 SELECT "Le client 9 valide son panier";
 CALL valide_commande(9, @commande);
@@ -65,7 +66,7 @@ SELECT commande_id, paiement_id, montant, type FROM liste_paiement JOIN paiement
 SELECT reste_du(@commande);
 
 SELECT "Le client 9 effectue le reste du paiement en espèce";
-CALL add_paiement_espece(@commande,10.53,@IDPAIEMENT);
+CALL add_paiement_espece(@commande,29,26,@IDPAIEMENT);
 
 SELECT "La commande est payée";
 SELECT id,utilisateur_id, statut, jour, heure, paiement_OK FROM commande WHERE utilisateur_id = 9;

@@ -123,13 +123,13 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS create_utilisateur;
 DELIMITER |
 CREATE PROCEDURE create_utilisateur( 
-   IN p_civilite ENUM ('Mlle','Mme','M'),
-   IN p_nom VARCHAR(50),
-   IN p_prenom VARCHAR(50),
-   IN p_login VARCHAR(50), 
-   IN p_mot_de_passe VARCHAR(255),
-   IN p_magasin_id INT UNSIGNED,
-   OUT p_id INT(10) UNSIGNED)
+   IN p_civilite ENUM ('Mlle','Mme','M'), -- civilité
+   IN p_nom VARCHAR(50),                  -- nom de l'utilisateur
+   IN p_prenom VARCHAR(50),               -- prénom de l'utilisateur
+   IN p_login VARCHAR(50),                -- login
+   IN p_mot_de_passe VARCHAR(255),        -- mot de passe
+   IN p_magasin_id INT UNSIGNED,          -- son magasin attitré
+   OUT p_id INT(10) UNSIGNED)             -- retourne l'identifiant
 BEGIN
    SET p_id = 0;
 
@@ -154,15 +154,15 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS create_employe;
 DELIMITER |
 CREATE PROCEDURE create_employe( 
-   IN p_civilite ENUM ('Mlle','Mme','M'),
-   IN p_nom VARCHAR(50),
-   IN p_prenom VARCHAR(50),
-   IN p_login VARCHAR(50), 
-   IN p_mot_de_passe VARCHAR(255),
-   IN p_magasin_id INT(10) UNSIGNED,
+   IN p_civilite ENUM ('Mlle','Mme','M'), -- civilité
+   IN p_nom VARCHAR(50),                  -- nom de l'employé
+   IN p_prenom VARCHAR(50),               -- prénom de l'employé
+   IN p_login VARCHAR(50),                -- login de l'employé
+   IN p_mot_de_passe VARCHAR(255),        -- mot de passe de l'employé 
+   IN p_magasin_id INT(10) UNSIGNED,      -- magasin ou il travaille 
    IN p_role ENUM ('Accueil','Pizzaiolo','Livreur','Manager',
-                  'Gestionnaire','Comptable','Direction'),
-   OUT p_id INT(10) UNSIGNED)
+                  'Gestionnaire','Comptable','Direction'),     -- son poste
+   OUT p_id INT(10) UNSIGNED)                         -- retourne l'identifiant
 BEGIN
 	CALL create_utilisateur(p_civilite, p_nom, p_prenom, p_login, p_mot_de_passe, p_magasin_id, p_id);
 
@@ -176,19 +176,19 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS create_client;
 DELIMITER |
 CREATE PROCEDURE create_client( 
-   IN p_civilite ENUM ('Mlle','Mme','M'),
-   IN p_nom VARCHAR(50),
-   IN p_prenom VARCHAR(50),
-   IN p_login VARCHAR(50), 
-   IN p_mot_de_passe VARCHAR(255),
-   IN p_magasin_id INT(10) UNSIGNED,
-   IN p_telephone VARCHAR(10),
-   IN p_email VARCHAR(255),
-   IN p_numero VARCHAR(5), 
+   IN p_civilite ENUM ('Mlle','Mme','M'), -- civilité
+   IN p_nom VARCHAR(50),                  -- nom du client
+   IN p_prenom VARCHAR(50),               -- prénom du client
+   IN p_login VARCHAR(50),                -- login du client
+   IN p_mot_de_passe VARCHAR(255),        -- mot de passe du client
+   IN p_magasin_id INT(10) UNSIGNED,      -- magasin préféré
+   IN p_telephone VARCHAR(10),            -- téléphone du client
+   IN p_email VARCHAR(255),               -- email du client
+   IN p_numero VARCHAR(5),                -- addresse simplifiée
    IN p_voie VARCHAR(50), 
    IN p_ville VARCHAR(20),
    IN p_code VARCHAR(5),
-   OUT p_id INT(10) UNSIGNED)
+   OUT p_id INT(10) UNSIGNED)             -- retourne l'identifiant
 BEGIN
    DECLARE v_adresse_id INT(10) UNSIGNED;
         

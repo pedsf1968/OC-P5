@@ -41,13 +41,14 @@ USE oc_pizza;
 ####################################################################### ERREUR #
 DROP TABLE IF EXISTS erreur;
 CREATE TABLE erreur (
-   id TINYINT UNSIGNED AUTO_INCREMENT NOT NULL,
-   message VARCHAR(100) UNIQUE,
+   id TINYINT UNSIGNED AUTO_INCREMENT NOT NULL, -- identifiant de l'erreur
+   message VARCHAR(100) UNIQUE,                 -- message d'erreur
    PRIMARY KEY (id)
    )ENGINE=InnoDB;
 
 DESCRIBE erreur;
 
+-- remplissage de la table des erreurs pour créer une erreur lors d'une ré-insertion
 INSERT INTO erreur (message) VALUES ('ERREUR : l''adresse doit être unique!');
 INSERT INTO erreur (message) VALUES ('ERREUR : le login doit être unique!');
 INSERT INTO erreur (message) VALUES ('ERREUR : le nom du magasin doit être unique!');
@@ -76,11 +77,12 @@ CREATE TABLE adresse (
    code VARCHAR(5) NOT NULL,
    ville VARCHAR(20) NOT NULL,
    pays VARCHAR(20) DEFAULT 'FRANCE' NOT NULL,
-   commentaire TEXT,
+   commentaire TEXT, -- pour un code de digicode ou informations complémentaires
    PRIMARY KEY (id)
 )ENGINE=InnoDB;
 DESCRIBE adresse;
 
+-- trigger pour vérifier l'insertion d'adresse unique
 DROP TRIGGER IF EXISTS before_insert_adresse;
 DELIMITER |
 CREATE TRIGGER before_insert_adresse 
@@ -150,6 +152,7 @@ CREATE TABLE fournisseur (
                 PRIMARY KEY (id,nom)
 )ENGINE=InnoDB;
 
+-- l'identifiant de l'adresse et la la table adresse sont liés
 ALTER TABLE fournisseur ADD CONSTRAINT adresse_fournisseur_fk
 FOREIGN KEY (adresse_id)
 REFERENCES adresse (id)
@@ -170,6 +173,7 @@ CREATE TABLE magasin (
                 PRIMARY KEY (id,nom)
 )ENGINE=InnoDB;
 
+-- l'identifiant de l'adresse et la la table adresse sont liés
 ALTER TABLE magasin ADD CONSTRAINT adresse_magasin_fk
 FOREIGN KEY (adresse_id)
 REFERENCES adresse (id)
@@ -199,12 +203,14 @@ CREATE TABLE utilisateur (
                 PRIMARY KEY (id)
 )ENGINE=InnoDB;
 
+-- un utilisateur est lié à un magasin par son identifiant
 ALTER TABLE utilisateur ADD CONSTRAINT magasin_utilisateur_fk
 FOREIGN KEY (magasin_id)
 REFERENCES magasin (id)
 ON DELETE NO ACTION
 ON UPDATE NO ACTION;
 
+-- ajout d'un index pour une recherche sur les noms
 ALTER TABLE utilisateur
 ADD INDEX utilisateur_nom_idx (nom);
 
@@ -220,6 +226,7 @@ CREATE TABLE employe (
                 PRIMARY KEY (utilisateur_id)
 )ENGINE=InnoDB;
 
+--un employé est un utilisateur
 ALTER TABLE employe ADD CONSTRAINT utilisateur_employe_fk
 FOREIGN KEY (utilisateur_id)
 REFERENCES utilisateur (id)
@@ -239,12 +246,14 @@ CREATE TABLE client (
                 PRIMARY KEY (utilisateur_id)
 )ENGINE=InnoDB;
 
+--un client est un utilisateur
 ALTER TABLE client ADD CONSTRAINT utilisateur_client_fk
 FOREIGN KEY (utilisateur_id)
 REFERENCES utilisateur (id)
 ON DELETE CASCADE
 ON UPDATE CASCADE;
 
+-- l'identifiant de l'adresse et la la table adresse sont liés
 ALTER TABLE client ADD CONSTRAINT adresse_client_fk
 FOREIGN KEY (adresse_id)
 REFERENCES adresse (id)
@@ -274,6 +283,7 @@ CREATE TABLE produit (
                 PRIMARY KEY (id)
 )ENGINE=InnoDB;
 
+-- un produit peut être lié à un fournisseur
 ALTER TABLE produit ADD CONSTRAINT fournisseur_produit_fk
 FOREIGN KEY (fournisseur_id)
 REFERENCES fournisseur (id)
@@ -291,6 +301,8 @@ CREATE TABLE preparation (
                 PRIMARY KEY (produit_id)
 )ENGINE=InnoDB;
 
+-- un produit comme la pizza peut avoir une recette donc l'identifiant de la 
+-- préparation est le même que celui du produit
 ALTER TABLE preparation ADD CONSTRAINT produit_preparation_fk
 FOREIGN KEY (produit_id)
 REFERENCES produit (id)
@@ -308,6 +320,8 @@ CREATE TABLE composition (
                 PRIMARY KEY (produit_id)
 )ENGINE=InnoDB;
 
+-- un produit comme peut avoir une composition donc l'identifiant de la 
+-- composition est le même que celui du produit
 ALTER TABLE composition ADD CONSTRAINT produit_composition_fk
 FOREIGN KEY (produit_id)
 REFERENCES produit (id)
@@ -327,12 +341,14 @@ CREATE TABLE composant (
                 PRIMARY KEY (produit_id, ingredient_id)
 )ENGINE=InnoDB;
 
+-- le produit composant est un produit identifié par son id
 ALTER TABLE composant ADD CONSTRAINT produit_composition_produit_fk
 FOREIGN KEY (produit_id)
 REFERENCES produit (id)
 ON DELETE NO ACTION
 ON UPDATE NO ACTION;
 
+-- un ingrédient est un produit identifié par son id
 ALTER TABLE composant ADD CONSTRAINT produit_composition_ingredient_fk
 FOREIGN KEY (ingredient_id)
 REFERENCES produit (id)
@@ -353,12 +369,14 @@ CREATE TABLE stock (
                 PRIMARY KEY (magasin_id, produit_id)
 )ENGINE=InnoDB;
 
+-- liaison entre le stock et les magasins
 ALTER TABLE stock ADD CONSTRAINT magasin_stock_fk
 FOREIGN KEY (magasin_id)
 REFERENCES magasin (id)
 ON DELETE NO ACTION
 ON UPDATE NO ACTION;
 
+-- liaison entre le stock et les produits
 ALTER TABLE stock ADD CONSTRAINT produit_stock_fk
 FOREIGN KEY (produit_id)
 REFERENCES produit (id)
@@ -366,6 +384,7 @@ ON DELETE NO ACTION
 ON UPDATE NO ACTION;
 
 DESCRIBE stock;
+
 
 ################################################################################
 #                                                                     COMMANDE #
@@ -382,6 +401,7 @@ CREATE TABLE panier (
                 PRIMARY KEY (utilisateur_id)
 )ENGINE=InnoDB;
 
+-- un panier est lié à un client
 ALTER TABLE panier ADD CONSTRAINT client_panier_fk
 FOREIGN KEY (utilisateur_id)
 REFERENCES client (utilisateur_id)
@@ -402,12 +422,14 @@ CREATE TABLE ligne_de_panier (
                 PRIMARY KEY (utilisateur_id, produit_id)
 )ENGINE=InnoDB;
 
+-- une ligne de panier est liée à un client donc un utilisateur
 ALTER TABLE ligne_de_panier ADD CONSTRAINT utilisateur_ligne_de_panier_fk
 FOREIGN KEY (utilisateur_id)
 REFERENCES  utilisateur (id)
 ON DELETE CASCADE
 ON UPDATE CASCADE;
 
+-- une ligne de panier est liée à un produit
 ALTER TABLE ligne_de_panier ADD CONSTRAINT produit_ligne_de_panier_fk
 FOREIGN KEY (produit_id)
 REFERENCES produit (id)
@@ -435,12 +457,14 @@ CREATE TABLE commande (
                 PRIMARY KEY (id)
 )ENGINE=InnoDB;
 
+-- une commande à une adresse de livraison unique
 ALTER TABLE commande ADD CONSTRAINT adresse_commande_fk
 FOREIGN KEY (adresse_id)
 REFERENCES adresse (id)
 ON DELETE NO ACTION
 ON UPDATE NO ACTION;
 
+-- une commande est liée à un utilisateur
 ALTER TABLE commande ADD CONSTRAINT client_commande_fk
 FOREIGN KEY (utilisateur_id)
 REFERENCES client (utilisateur_id)
@@ -461,12 +485,14 @@ CREATE TABLE ligne_de_commande (
                 PRIMARY KEY (commande_id, produit_id)
 )ENGINE=InnoDB;
 
+-- chaque ligne de commande est liée à une commande
 ALTER TABLE ligne_de_commande ADD CONSTRAINT commande_ligne_de_commande_fk
 FOREIGN KEY (commande_id)
 REFERENCES commande (id)
 ON DELETE CASCADE
 ON UPDATE CASCADE;
 
+-- chaque ligne de commande est liée à un produit
 ALTER TABLE ligne_de_commande ADD CONSTRAINT produit_ligne_de_commande_fk
 FOREIGN KEY (produit_id)
 REFERENCES produit (id)
@@ -474,6 +500,7 @@ ON DELETE NO ACTION
 ON UPDATE NO ACTION;
 
 DESCRIBE ligne_de_commande;
+
 
 ################################################################################
 #                                                                     PAIEMENT #
@@ -507,6 +534,7 @@ CREATE TABLE ticket_restaurant (
                 PRIMARY KEY (paiement_id)
 )ENGINE=InnoDB;
 
+-- ticket_restaurant est un paiement
 ALTER TABLE ticket_restaurant ADD CONSTRAINT paiement_ticket_restaurant_fk
 FOREIGN KEY (paiement_id)
 REFERENCES paiement (id)
@@ -526,6 +554,7 @@ CREATE TABLE carte_bancaire (
                 PRIMARY KEY (paiement_id)
 )ENGINE=InnoDB;
 
+-- carte_bancaire est un paiement
 ALTER TABLE carte_bancaire ADD CONSTRAINT paiement_carte_bancaire_fk
 FOREIGN KEY (paiement_id)
 REFERENCES paiement (id)
@@ -545,6 +574,7 @@ CREATE TABLE cheque (
                 PRIMARY KEY (paiement_id)
 )ENGINE=InnoDB;
 
+-- cheque est un paiement
 ALTER TABLE cheque ADD CONSTRAINT paiement_cheque_fk
 FOREIGN KEY (paiement_id)
 REFERENCES paiement (id)
@@ -563,12 +593,14 @@ CREATE TABLE liste_paiement (
                 PRIMARY KEY (commande_id,paiement_id )
 )ENGINE=InnoDB;
 
+-- une liste de paiement est liée à un paiement
 ALTER TABLE liste_paiement ADD CONSTRAINT paiement_liste_paiement_fk
 FOREIGN KEY (paiement_id)
 REFERENCES paiement (id)
 ON DELETE NO ACTION
 ON UPDATE NO ACTION;
 
+-- une liste de paiement est liée à une commande
 ALTER TABLE liste_paiement ADD CONSTRAINT commande_liste_paiement_fk
 FOREIGN KEY (commande_id)
 REFERENCES commande (id)
@@ -579,6 +611,17 @@ DESCRIBE liste_paiement;
 
 SHOW TABLES;
 
+-- génération des procédures
 source ocpcreateprocedure.sql;
+
+-- génération des fonctions
+source ocpcreatefunction.sql;
+
+-- génération des requêtes
 source ocpcreaterequete.sql;
+
+-- remplissage de la base
 source ocpfilldb.sql;
+
+-- exécution de commande
+source ocp.sql;
