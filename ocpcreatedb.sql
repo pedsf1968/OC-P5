@@ -612,16 +612,16 @@ DESCRIBE liste_paiement;
 SHOW TABLES;
 
 # génération des procédures
-source ocpcreateprocedure.sql;
+#source ocpcreateprocedure.sql;
 
 # génération des fonctions
-source ocpcreatefunction.sql;
+#source ocpcreatefunction.sql;
 
 # génération des requêtes
-source ocpcreaterequete.sql;
+#source ocpcreaterequete.sql;
 
 # remplissage de la base
-source ocpfilldb.sql;
+#source ocpfilldb.sql;
 
 # exécution de commande
-source ocp.sql;
+#source ocp.sql;
