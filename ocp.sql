@@ -66,7 +66,7 @@ SELECT commande_id, paiement_id, montant, type FROM liste_paiement JOIN paiement
 SELECT reste_du(@commande);
 
 SELECT "Le client 9 effectue le reste du paiement en espèce";
-CALL add_paiement_espece(@commande,29,26,@IDPAIEMENT);
+CALL add_paiement_espece(@commande,10.53,@IDPAIEMENT);
 
 SELECT "La commande est payée";
 SELECT id,utilisateur_id, statut, jour, heure, paiement_OK FROM commande WHERE utilisateur_id = 9;

@@ -789,7 +789,8 @@ BEGIN
 
    -- le pizzaiolo ne peut terminer une commande qui n'est pas en préparation
    IF v_statut = 'En préparation' THEN
-      SET v_preparation_duree = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time)) - v_preparation_delai;   
+      SET v_preparation_duree = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time));   
+      SET v_preparation_duree = TIMEDIFF(v_preparation_duree, v_preparation_delai);   
       UPDATE commande SET statut = 'Préparée', preparation_duree = v_preparation_duree WHERE id = p_commande_id;
    ELSE
       INSERT INTO erreur (message) VALUES ('ERREUR : la commande n''est pas en préparation!');   
@@ -816,7 +817,8 @@ BEGIN
    FROM commande WHERE id = p_commande_id;
 
    IF v_statut = 'Préparée' THEN
-      SET v_livraison_delai = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time)) - v_preparation_delai - v_preparation_duree;
+      SET v_livraison_delai = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time));
+      SET v_livraison_delai = TIMEDIFF(v_livraison_delai, v_preparation_delai + v_preparation_duree);   
       UPDATE commande SET statut = 'En livraison', livraison_delai = v_livraison_delai WHERE id = p_commande_id;
    ELSE 
       INSERT INTO erreur (message) VALUES ('ERREUR : la commande n''est pas préparée!');   
@@ -849,10 +851,12 @@ BEGIN
 
    -- un client peut prendre la commande directement en magasin donc elle ne passe pas par la livraison
    IF v_livraison_delai IS NULL THEN
-      SET v_livraison_duree = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time)) - v_preparation_delai - v_preparation_duree;
+      SET v_livraison_duree = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time));
+      SET v_livraison_duree = TIMEDIFF(v_livraison_duree,v_preparation_delai + v_preparation_duree);
       UPDATE commande SET statut = 'Livrée',  livraison_delai = 0, livraison_duree = v_livraison_duree WHERE id = p_commande_id;      
    ELSE
-      SET v_livraison_duree = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time)) - v_preparation_delai - v_preparation_duree - v_livraison_delai;
+      SET v_livraison_duree = TIMEDIFF(NOW(),TIMESTAMP(v_start_date,v_start_time));
+      SET v_livraison_duree = TIMEDIFF(v_livraison_duree, v_preparation_delai + v_preparation_duree + v_livraison_delai);
       UPDATE commande SET statut = 'Livrée',  livraison_duree = v_preparation_duree WHERE id = p_commande_id;
    END IF;
 
