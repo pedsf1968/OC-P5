@@ -38,14 +38,19 @@ SELECT * FROM ligne_de_panier WHERE utilisateur_id = 8;
 SELECT "La commande est validée non payée et avec le statut En attente";
 SELECT id,utilisateur_id, statut, jour, heure, paiement_OK FROM commande WHERE utilisateur_id = 8;
 SELECT commande_id AS IDC, produit_id AS IDP, quantite AS Quantité, prix_unitaire_ht*(1+taux_tva/100) AS Prix FROM ligne_de_commande WHERE commande_id = @ID;
-SELECT reste_du(@ID);
+SELECT reste_du(@ID) AS "Reste du";
 
 SELECT "Le client 8 effectue le paiement par CB";
 CALL add_paiement_carte_bancaire(@ID,35.42,"ERGQGQD6546",@IDPAIEMENT);
 SELECT "La commande est payée";
 SELECT id,utilisateur_id, statut, jour, heure, paiement_OK FROM commande WHERE utilisateur_id = 8;
 SELECT commande_id, paiement_id, montant, type FROM liste_paiement JOIN paiement ON paiement.id = liste_paiement.paiement_id WHERE commande_id = @ID;
-SELECT reste_du(@ID);
+SELECT reste_du(@ID) AS "Reste du";
+
+SELECT "Le paiement apparait dans les paiements"
+SELECT * FROM liste_paiement;
+SELECT * FROM paiement;
+SELECT paiement_id AS id, reference, jour, heure FROM carte_bancaire;
 
 SELECT "Le client 9 valide son panier";
 CALL valide_commande(9, @commande);
@@ -57,21 +62,31 @@ SELECT * FROM ligne_de_panier WHERE utilisateur_id = 9;
 SELECT "La commande est validée non payée et avec le statut En attente";
 SELECT id,utilisateur_id, statut, jour, heure, paiement_OK FROM commande WHERE utilisateur_id = 9;
 SELECT commande_id AS IDC, produit_id AS IDP, quantite AS Quantité, prix_unitaire_ht*(1+taux_tva/100) AS Prix FROM ligne_de_commande WHERE commande_id = @commande;
-SELECT reste_du(@commande);
+SELECT reste_du(@commande) AS "Reste du";
 
 SELECT "Le client 9 effectue le paiement par Ticket Restaurant";
 CALL add_paiement_ticket_restaurant(@commande,8.20,"ERGQGQD6546",get_etablissement_id("Pass"),@IDPAIEMENT);
 SELECT id,utilisateur_id, statut, jour, heure, paiement_OK FROM commande WHERE utilisateur_id = 9;
 SELECT commande_id, paiement_id, montant, type FROM liste_paiement JOIN paiement ON paiement.id = liste_paiement.paiement_id WHERE commande_id = @commande;
-SELECT reste_du(@commande);
+SELECT reste_du(@commande) AS "Reste du";
+
+SELECT "Le paiement apparait dans les paiements";
+SELECT * FROM liste_paiement;
+SELECT * FROM paiement;
+SELECT paiement_id AS id, numero, etablissement.nom FROM ticket_restaurant
+	JOIN etablissement ON ticket_restaurant.etablissement_id = etablissement.id;
 
 SELECT "Le client 9 effectue le reste du paiement en espèce";
 CALL add_paiement_espece(@commande,10.53,@IDPAIEMENT);
 
+SELECT "Le paiement apparait dans les paiements";
+SELECT * FROM liste_paiement;
+SELECT * FROM paiement;
+
 SELECT "La commande est payée";
 SELECT id,utilisateur_id, statut, jour, heure, paiement_OK FROM commande WHERE utilisateur_id = 9;
 SELECT commande_id, paiement_id, montant, type FROM liste_paiement JOIN paiement ON paiement.id = liste_paiement.paiement_id WHERE commande_id = @commande;
-SELECT reste_du(@commande);
+SELECT reste_du(@commande) AS "Reste du";
 
 SELECT id,utilisateur_id, statut, jour, heure, preparation_delai AS Attente, preparation_duree AS Préparation, livraison_delai AS Finalisation, livraison_duree AS Livraison,paiement_OK FROM commande;
 

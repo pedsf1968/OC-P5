@@ -45,9 +45,20 @@ un fichier ZIP contenant l’ensemble des scripts SQL de création de la base de
  
 
 **Création de la base de données sous MySQL**
-- source ocpcreatedb.sql
-- source ocpcreateprocedure.sql;
-- source ocpcreaterequete.sql;
-- source ocpfilldb.sql
+source ocpcreatedb.sql;
 
+-- génération des procédures
+source ocpcreateprocedure.sql;
+
+-- génération des fonctions
+source ocpcreatefunction.sql;
+
+-- génération des requêtes
+source ocpcreaterequete.sql;
+
+-- remplissage de la base
+source ocpfilldb.sql;
+
+-- exécution de commande
+source ocp.sql;
 
