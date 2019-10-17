@@ -148,7 +148,7 @@ CREATE TABLE fournisseur (
                 nom VARCHAR(50) NOT NULL,
                 telephone VARCHAR(10) NOT NULL,
                 email VARCHAR(255) NOT NULL,
-                adresse_id INT UNSIGNED NOT NULL,
+                adresse_id INT UNSIGNED NOT NULL, -- identifiant de l'adresse
                 PRIMARY KEY (id,nom)
 )ENGINE=InnoDB;
 
@@ -169,7 +169,7 @@ CREATE TABLE magasin (
                 nom VARCHAR(50) NOT NULL,
                 telephone VARCHAR(10) NOT NULL,
                 email VARCHAR(255) NOT NULL,
-                adresse_id INT UNSIGNED NOT NULL,
+                adresse_id INT UNSIGNED NOT NULL, -- identifiant de l'adresse
                 PRIMARY KEY (id,nom)
 )ENGINE=InnoDB;
 
@@ -199,7 +199,7 @@ CREATE TABLE utilisateur (
                 prenom VARCHAR(50) NOT NULL,
                 login VARCHAR(50) NOT NULL UNIQUE,
                 mot_de_passe VARCHAR(255) NOT NULL,
-                magasin_id INT UNSIGNED NOT NULL,
+                magasin_id INT UNSIGNED NOT NULL, -- identifiant du magasin
                 PRIMARY KEY (id)
 )ENGINE=InnoDB;
 
@@ -241,7 +241,7 @@ DROP TABLE IF EXISTS client;
 CREATE TABLE client (
                 utilisateur_id INT UNSIGNED NOT NULL,
                 telephone VARCHAR(10) NOT NULL,
-                adresse_id INT UNSIGNED NOT NULL,
+                adresse_id INT UNSIGNED NOT NULL, -- identifiant de l'adresse
                 email VARCHAR(255) NOT NULL UNIQUE,
                 PRIMARY KEY (utilisateur_id)
 )ENGINE=InnoDB;
@@ -272,7 +272,7 @@ CREATE TABLE produit (
                 id INT UNSIGNED AUTO_INCREMENT NOT NULL,
                 designation VARCHAR(100) UNIQUE NOT NULL,
                 categorie ENUM ('pack','vrac','ingrédient','pizza','boisson','dessert','emballage','sauce') NOT NULL,
-                fournisseur_id INT UNSIGNED,
+                fournisseur_id INT UNSIGNED, -- identifiant du fournisseur
                 reference VARCHAR(20),
                 quantite DECIMAL(5,2) DEFAULT (0.0),
                 unite VARCHAR(3),
@@ -296,8 +296,8 @@ DESCRIBE produit;
 ################################################################## PREPARATION #
 DROP TABLE IF EXISTS preparation;
 CREATE TABLE preparation (
-                produit_id INT UNSIGNED NOT NULL,
-                recette TEXT NOT NULL,
+                produit_id INT UNSIGNED NOT NULL, -- identifiant du produit
+                recette TEXT NOT NULL,            -- recette de la pizza
                 PRIMARY KEY (produit_id)
 )ENGINE=InnoDB;
 
@@ -315,8 +315,8 @@ DESCRIBE preparation;
 ################################################################## COMPOSITION #
 DROP TABLE IF EXISTS composition;
 CREATE TABLE composition (
-                produit_id INT UNSIGNED NOT NULL,
-                formule TEXT NOT NULL,
+                produit_id INT UNSIGNED NOT NULL, -- identifiant du produit
+                formule TEXT NOT NULL,            -- composition du produit 
                 PRIMARY KEY (produit_id)
 )ENGINE=InnoDB;
 
@@ -334,8 +334,8 @@ DESCRIBE composition;
 #################################################################### COMPOSANT # 
 DROP TABLE IF EXISTS composant;
 CREATE TABLE composant (
-                produit_id INT UNSIGNED NOT NULL,
-                ingredient_id INT UNSIGNED NOT NULL,
+                produit_id INT UNSIGNED NOT NULL,    
+                ingredient_id INT UNSIGNED NOT NULL, 
                 quantite DECIMAL(5,2) DEFAULT (0) NOT NULL,
                 unite VARCHAR(3) NOT NULL,
                 PRIMARY KEY (produit_id, ingredient_id)
