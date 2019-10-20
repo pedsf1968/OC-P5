@@ -213,6 +213,23 @@ BEGIN
 	EXECUTE l_commande;
 END |
 DELIMITER ;
+
+DROP PROCEDURE IF EXISTS etape_9;
+DELIMITER |
+CREATE PROCEDURE etape_9()
+BEGIN
+	CALL etape_1;
+	CALL etape_2;
+	CALL etape_3;
+	CALL etape_4;
+	CALL etape_5;
+	CALL etape_6;
+	CALL etape_7;
+	CALL etape_8;
+END |
+DELIMITER ;
+
+
 SELECT "
 	CALL etape_1;
 	CALL etape_2;
@@ -222,13 +239,3 @@ SELECT "
 	CALL etape_6;
 	CALL etape_7;
 	CALL etape_8;" AS "Lancez les commandes suivantes :";
-
-
-#CALL etape_1;
-#CALL etape_2;
-#CALL etape_3;
-#CALL etape_4;
-#CALL etape_5;
-#CALL etape_6;
-#CALL etape_7;
-#CALL etape_8;

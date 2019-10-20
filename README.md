@@ -1,7 +1,32 @@
 # OC-P5
 OpenClassrooms Project 5 - Concevez la solution technique d’un système de gestion de pizzeria
 
-Pré-requis
+**Arborescence**
+/diagrammes : contient les diagrammes
+/images : contient les images
+/SQL : contient les scripts SQL
+- ocpcreatedb.sql         : création de la base
+- ocpcreateprocedure.sql  : création des procédures
+- ocpcreatefunction.sql   : création des fonctions
+- ocpcreaterequete.sql    : création des requêtes
+- ocpfilldb.sql           : remplissage de la base
+- ocporderlife.sql        : déroulement d'une commande
+
+/StarUML : contient les relations entre les classes StarUML
+
+
+*fichier de présentation PPT*
+- Concevez la solution technique d’un système de gestion.pptx
+
+*Spécifications Techniques*
+- OC Pizza spécifications techniques.docx
+- OC Pizza spécifications techniques.pdf
+
+*MDP sous forme SQL Architect*
+- OC Pizza.architect
+
+
+**Pré-requis**
 Avoir une connaissance du fonctionnement général d’Internet et des systèmes informatiques
 Savoir, dans les grandes lignes, ce qu’est une base de données et un service tiers (comme un web service par exemple). Il n'est pas nécessaire d'être capable de les mettre en œuvre.
 Contexte
@@ -22,7 +47,7 @@ Le client a déjà fait une petite prospection et les logiciels existants qu’i
 
 Dans votre proposition de solution, vous partirez du principe que vous disposez dans votre société de toutes les ressources et compétences nécessaires à la réalisation du projet.
 
-Travail demandé
+**Travail demandé**
 En tant qu’analyste-programmeur, votre travail consiste, à ce stade, à définir le domaine fonctionnel et à concevoir l’architecture technique de la solution répondant aux besoins du client, c’est-à-dire :
 
 modéliser les objets du domaine fonctionnel
@@ -33,7 +58,7 @@ Votre travail sera validé par un des développeurs expérimentés de votre soci
 
 Vous utiliserez UML pour réaliser cette conception.
 
-Livrables attendus
+**Livrables attendus**
 Un document (format PDF) de spécifications techniques comprenant :
 une description du domaine fonctionnel
 les différents composants du système et les composants externes utilisés par celui-ci et leur interaction
@@ -45,6 +70,7 @@ un fichier ZIP contenant l’ensemble des scripts SQL de création de la base de
  
 
 **Création de la base de données sous MySQL**
+Les scripts SQL sont dans le dossier SQL
 source ocpcreatedb.sql;
 
 -- génération des procédures
@@ -60,5 +86,5 @@ source ocpcreaterequete.sql;
 source ocpfilldb.sql;
 
 -- exécution de commande
-source ocp.sql;
+source ocporderlife.sql;
 
