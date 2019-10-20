@@ -175,19 +175,23 @@ CALL add_composant(@COMP,@ING,24,'U');
 CALL create_produit('Jus d''orange - 33cl/24','pack',1,'888554',1,'U',NULL,NULL,0.0,0.0,NULL,NULL,@COMP);
 CALL create_produit('Jus d''orange - 33cl/1','boisson',1,'888554',1,'U',NULL,1.8,5.5,10.0,NULL,NULL,@ING);
 CALL add_composant(@COMP,@ING,24,'U');
-
+  
 CALL create_produit('Jus de pomme - 33cl/24','pack',1,'644898',1,'U',NULL,NULL,0.0,0.0,NULL,NULL,@COMP);
 CALL create_produit('Jus de pomme - 33cl/1','boisson',1,'644898',1,'U',NULL,2.1,5.5,10.0,NULL,NULL,@ING);
 CALL add_composant(@COMP,@ING,24,'U');
 
 ################################################################### LES PIZZAS #
-CALL create_produit('Pizza margarita','pizza',1,'Pmargarita',1,'U',NULL,15.3,10.0,10.0,NULL,NULL,@COMP);
+CALL create_produit('Pizza margarita','pizza',1,'Pmargarita',1,'U',NULL,15.3,10.0,10.0,
+	"farine, porc, tomate, fromage",
+	"Faire la pâte, l'étaler, étaler la sauce tomate, étaler le jambon, recouvrer de fromage rapé, enfourner",@COMP);
 CALL add_composant(@COMP,get_vrac_id('farine'),0.10,'KG');
 CALL add_composant(@COMP,get_vrac_id('jambon'),0.10,'KG');
 CALL add_composant(@COMP,get_vrac_id('Sauce tomate'),0.05,'L');
 CALL add_composant(@COMP,get_vrac_id('Fromage rapé'),0.10,'KG');
 
-CALL create_produit('Pizza 4 fromages','pizza',1,'P4fromages',1,'U',NULL,13.3,10.0,10.0,NULL,NULL,@COMP);
+CALL create_produit('Pizza 4 fromages','pizza',1,'P4fromages',1,'U',NULL,13.3,10.0,10.0,
+	"farine, tomate, fromage",
+	"Faire la pâte, l'étaler, étaler la sauce tomate, étaler les 4 promages également sur la pizza, enfourner",@COMP);
 CALL add_composant(@COMP,get_vrac_id('farine'),0.10,'KG');
 CALL add_composant(@COMP,get_vrac_id('Mozzarella'),0.10,'KG');
 CALL add_composant(@COMP,get_vrac_id('Fromage rapé'),0.10,'KG');
@@ -195,7 +199,10 @@ CALL add_composant(@COMP,get_vrac_id('Fourme'),0.10,'KG');
 CALL add_composant(@COMP,get_vrac_id('Chevre'),0.10,'KG');
 CALL add_composant(@COMP,get_vrac_id('Sauce tomate'),0.05,'L');
 
-CALL create_produit('Pizza extravaganzza','pizza',1,'Pextravag',1,'U',NULL,16.5,10.0,10.0,NULL,NULL,@COMP);
+CALL create_produit('Pizza extravaganzza','pizza',1,'Pextravag',1,'U',NULL,16.5,10.0,10.0,
+	"farine, tomate, poivron, champignons porc, fromage",
+	"Faire la pâte, l'étaler, étaler la sauce tomate, étaler le jambon, étaler le bacon, etaler les poivrons, 
+	étaler les champiognons, étaler les pepperoni, etaler le fromage, enfourner",@COMP);
 CALL add_composant(@COMP,get_vrac_id('farine'),0.10,'KG');
 CALL add_composant(@COMP,get_vrac_id('Champignon'),0.05,'KG');
 CALL add_composant(@COMP,get_vrac_id('Poivron'),0.05,'KG');
@@ -208,11 +215,13 @@ CALL add_composant(@COMP,get_vrac_id('Sauce tomate'),0.05,'L');
 
 
 SELECT * FROM produit;
-SELECT * FROM composition;
-SELECT * FROM preparation;
-SELECT * FROM composant;
+
+EXECUTE all_formule;
+EXECUTE all_recette;
+EXECUTE all_composition;
 
 SELECT "Livraison des magasins";
 CALL livre_magasin();
-SELECT * FROM stock;
+
+EXECUTE stock_all_magasin;
 

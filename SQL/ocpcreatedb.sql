@@ -611,6 +611,14 @@ DESCRIBE liste_paiement;
 
 SHOW TABLES;
 
+
+################################################################################
+#                                                                      SCRIPTS #
+################################################################################
+# uncomment line below to execute sql script                                   #
+################################################################################
+
+
 # génération des procédures
 source ocpcreateprocedure.sql;
 
@@ -623,5 +631,5 @@ source ocpcreaterequete.sql;
 # remplissage de la base
 source ocpfilldb.sql;
 
-# exécution de commande
-#source ocp.sql;
+# exécution des procédures de déroulement de la vie d'une commande
+source ocporderlife.sql;

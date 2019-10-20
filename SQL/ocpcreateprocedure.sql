@@ -1,6 +1,42 @@
 ################################################################################
 # OC PIZZA                                                   CREATE PROCEDURES #
 ################################################################################
+# CREATE PROCEDURE create_adresse                                              #
+# CREATE PROCEDURE create_magasin                                              #
+# CREATE PROCEDURE create_fournisseur                                          #
+# CREATE PROCEDURE create_utilisateur                                          #
+# CREATE PROCEDURE create_employe                                              #
+# CREATE PROCEDURE create_client                                               #
+# CREATE PROCEDURE create_paiement                                             #
+# CREATE PROCEDURE add_paiement_ticket_restaurant                              #
+# CREATE PROCEDURE add_paiement_carte_bancaire                                 #
+# CREATE PROCEDURE add_paiement_cheque                                         #
+# CREATE PROCEDURE add_paiement_espece                                         #
+# CREATE PROCEDURE create_produit                                              #
+# CREATE PROCEDURE cherche_produit_id                                          #
+# CREATE PROCEDURE add_composant                                               #
+# CREATE PROCEDURE livraison                                                   #
+# CREATE PROCEDURE livre_magasin                                               #
+# CREATE PROCEDURE ajoute_panier                                               #
+# CREATE PROCEDURE enleve_panier                                               #
+# CREATE PROCEDURE diminue_stock                                               #
+# CREATE PROCEDURE valide_commande                                             #
+# CREATE PROCEDURE pizzaiolo_prend_commande                                    #
+# CREATE PROCEDURE pizzaiolo_termine_commande                                  #
+# CREATE PROCEDURE livreur_prend_commande                                      #
+# CREATE PROCEDURE client_prend_commande                                       #
+# CREATE PROCEDURE liste_magasin_suivant_nom                                   #
+# CREATE PROCEDURE liste_fournisseur_suivant_nom                               #
+# CREATE PROCEDURE liste_employe_suivant_nom                                   #
+# CREATE PROCEDURE liste_employe_suivant_prenom                                #
+# CREATE PROCEDURE liste_employe_suivant_role                                  #
+# CREATE PROCEDURE liste_client_suivant_nom                                    #
+# CREATE PROCEDURE liste_client_suivant_prenom                                 #
+# CREATE PROCEDURE liste_ingredient_produit_par_id                             #
+# CREATE PROCEDURE liste_ingredient_produit_par_designation                    #
+# CREATE PROCEDURE liste_produit_vendable                                      #
+################################################################################
+
 
 ############################################################### CREATE ADRESSE #
 DROP PROCEDURE IF EXISTS create_adresse;
@@ -309,28 +345,6 @@ BEGIN
 
    IF reste_du(p_commande_id) = 0 THEN
       UPDATE commande SET paiement_ok = TRUE WHERE id = p_commande_id;
-   END IF;
-END |
-DELIMITER ;
-
-##################################################################### RESTE DU #
-DROP FUNCTION IF EXISTS reste_du;
-DELIMITER |
-CREATE FUNCTION reste_du(
-   p_commande_id INT(10) UNSIGNED)
-RETURNS DECIMAL(5,2)
-DETERMINISTIC
-BEGIN
-   DECLARE v_total_paiement DECIMAL(5,2);
-   DECLARE v_montant DECIMAL(5,2);
-
-   SELECT montant_TTC INTO v_montant FROM commande WHERE id = p_commande_id;
-   SELECT SUM(montant) INTO v_total_paiement FROM liste_paiement WHERE commande_id = p_commande_id;
-
-   IF v_total_paiement IS NULL THEN
-      RETURN (v_montant);
-   ELSE
-      RETURN (v_montant - v_total_paiement);
    END IF;
 END |
 DELIMITER ;
@@ -1183,24 +1197,6 @@ DELIMITER ;
 #                                                       REQUETE SELECT PRODUIT #
 ################################################################################
 
-############################################################### GET PRODUIT ID #
-DROP FUNCTION IF EXISTS get_produit_id;
-DELIMITER |
-CREATE FUNCTION get_produit_id(
-   p_designation VARCHAR(100))
-RETURNS INT(10) UNSIGNED
-DETERMINISTIC
-BEGIN
-   DECLARE v_id INT(10) UNSIGNED;
-
-   SELECT id INTO v_id
-   FROM produit
-   WHERE designation LIKE CONCAT('%',p_designation,'%') 
-   ORDER BY id ASC LIMIT 1;
-
-   RETURN (v_id);
-END |
-DELIMITER ;
 
 ############################################## LISTE INGREDIENT PRODUIT PAR ID #
 DROP PROCEDURE IF EXISTS liste_ingredient_produit_par_id;

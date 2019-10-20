@@ -1,6 +1,15 @@
 ################################################################################
 # OC PIZZA                                                     CREATE FUNCTION #
 ################################################################################
+# CREATE FUNCTION produit_est_disponible                                       #
+# CREATE FUNCTION get_produit_id                                               #
+# CREATE FUNCTION get_vrac_id                                                  #
+# CREATE FUNCTION get_client_adresse_id                                        #
+# CREATE FUNCTION get_etablissement_id                                         #
+# CREATE FUNCTION est_adresse_de_magasin                                       #
+# CREATE FUNCTION get_produit_id                                               #
+# CREATE FUNCTION reste_du                                                     #
+################################################################################
 
 ####################################################### PRODUIT EST DISPONIBLE #
 DROP FUNCTION IF EXISTS produit_est_disponible;
@@ -48,7 +57,7 @@ BEGIN
 END |
 DELIMITER ;
 
-##############################################################  GET VRAC ID #
+################################################################  GET VRAC ID #
 DROP FUNCTION IF EXISTS get_vrac_id;
 DELIMITER |
 CREATE FUNCTION get_vrac_id(
@@ -60,6 +69,42 @@ BEGIN
 
    SELECT DISTINCT id INTO v_id FROM produit
    WHERE categorie = 'vrac' AND designation LIKE CONCAT("%", p_designation, "%")
+   ORDER BY id LIMIT 1;
+
+   RETURN (v_id);
+END |
+DELIMITER ;
+
+################################################################  GET PIZZA ID #
+DROP FUNCTION IF EXISTS get_pizza_id;
+DELIMITER |
+CREATE FUNCTION get_pizza_id(
+   p_designation VARCHAR(100))
+RETURNS INT
+DETERMINISTIC
+BEGIN
+	DECLARE v_id INT(10) UNSIGNED;
+
+   SELECT DISTINCT id INTO v_id FROM produit
+   WHERE categorie = 'pizza' AND designation LIKE CONCAT("%", p_designation, "%")
+   ORDER BY id LIMIT 1;
+
+   RETURN (v_id);
+END |
+DELIMITER ;
+
+################################################################  GET BOISSON ID #
+DROP FUNCTION IF EXISTS get_boisson_id;
+DELIMITER |
+CREATE FUNCTION get_boisson_id(
+   p_designation VARCHAR(100))
+RETURNS INT
+DETERMINISTIC
+BEGIN
+	DECLARE v_id INT(10) UNSIGNED;
+
+   SELECT DISTINCT id INTO v_id FROM produit
+   WHERE categorie = 'boisson' AND designation LIKE CONCAT("%", p_designation, "%")
    ORDER BY id LIMIT 1;
 
    RETURN (v_id);
@@ -119,4 +164,27 @@ BEGIN
 END |
 DELIMITER ;
 
-SHOW PROCEDURE STATUS WHERE Db ='oc_pizza';
+
+##################################################################### RESTE DU #
+DROP FUNCTION IF EXISTS reste_du;
+DELIMITER |
+CREATE FUNCTION reste_du(
+   p_commande_id INT(10) UNSIGNED)
+RETURNS DECIMAL(5,2)
+DETERMINISTIC
+BEGIN
+   DECLARE v_total_paiement DECIMAL(5,2);
+   DECLARE v_montant DECIMAL(5,2);
+
+   SELECT montant_TTC INTO v_montant FROM commande WHERE id = p_commande_id;
+   SELECT SUM(montant) INTO v_total_paiement FROM liste_paiement WHERE commande_id = p_commande_id;
+
+   IF v_total_paiement IS NULL THEN
+      RETURN (v_montant);
+   ELSE
+      RETURN (v_montant - v_total_paiement);
+   END IF;
+END |
+DELIMITER ;
+
+SHOW FUNCTION STATUS WHERE Db ='oc_pizza';
